@@ -201,6 +201,12 @@ ENTRY(system_call)
 	jne tracesys
 	cmpl $(NR_syscalls),%eax
 	jae badsys
+	#hw_1
+	pushl %eax
+	call SYMBOL_NAME(is_valid)
+	jae forbidensys
+	popl %eax
+	#end hw_1
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
 	movl %eax,EAX(%esp)		# save the return value
 ENTRY(ret_from_sys_call)
@@ -245,6 +251,12 @@ tracesys_exit:
 badsys:
 	movl $-ENOSYS,EAX(%esp)
 	jmp ret_from_sys_call
+#hw_1
+forbidensys:
+	popl %eax
+	movl $-ENOSYS,EAX(%esp)
+	jmp ret_from_sys_call
+#end hw_1
 
 	ALIGN
 ENTRY(ret_from_intr)
@@ -650,9 +662,11 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_sched_setaffinity)
 	.long SYMBOL_NAME(sys_sched_getaffinity)
 
-  .long SYMBOL_NAME(​sc_restrict)           /* System Call no.243 */
-  .long SYMBOL_NAME(set_proc_restriction)  /* System Call no.244 */
-  .long SYMBOL_NAME(get_process_log)       /* System Call no.245 */
+	#hw_1
+	.long SYMBOL_NAME(​sc_restrict)           /* System Call no.243 */
+	.long SYMBOL_NAME(set_proc_restriction)  /* System Call no.244 */
+	.long SYMBOL_NAME(get_process_log)       /* System Call no.245 */
+	#end hw_1
 
 
 
