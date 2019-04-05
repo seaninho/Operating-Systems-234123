@@ -15,7 +15,7 @@ void shift_left(struct task_struct *p) {
 
 // recording forbidden activity - when current task privilege level is lower then the privilege level threshold of the involved system call syscall_number
 void recording_forbidden_activity (struct task_struct *p, int syscall_num, int threshold) {
-	if(violations = LOG_SIZE ){
+	if(p->violations = LOG_SIZE ){
 		shift_left(p);
 	}
 	p->log_forbidden_activity[ p->violations ].syscall_num = syscall_num;
