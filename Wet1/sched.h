@@ -143,6 +143,11 @@ typedef struct task_struct task_t;
 
 /* HW1 */
 
+typedef enum {
+   OFF = 0,
+   ON = 1
+} policy_flag;
+
 typedef struct sys_call_restriction {
 	int syscall_num;
 	int restriction_threshold;
@@ -472,12 +477,21 @@ struct task_struct {
 
 /* Restriction level */
 	int​ proc_restriction_level;
+	
+/* Restriction list */
+	scr* restricions_list;
+	
+/* Size restriction list */
+	int restricions_list_size;
 
 /* Log of forbidden activity */
 	fai* log_forbidden_activity;
 
 /* Number of for forbidden activities */
-	int​ violations;
+	int violations;
+	
+/* Feature */
+	policy_flag feature;
 
 /* HW1 end */
 };

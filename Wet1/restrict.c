@@ -20,7 +20,7 @@ void recording_forbidden_activity (struct task_struct *p, int syscall_num, int t
 	}
 	p->log_forbidden_activity[ p->violations ].syscall_num = syscall_num;
 	p->log_forbidden_activity[ p->violations ].syscall_restriction_threshold = threshold;
-	p->log_forbidden_activity[ p->violations ].proc_restriction_level = p->restriction_level;
+	p->log_forbidden_activity[ p->violations ].proc_restriction_level = p->proc_restriction_level;
 	p->log_forbidden_activity[ p->violations ].time = jiffies;
 	p->violations++;
 }
@@ -33,7 +33,7 @@ int is_valid(int syscall_num) {
 	int i = 0;
 	for( ; i < current->restricions_list_size ; i++ ) {
 		if(current->restricions_list[i].syscall_num == syscall_num) {
-			if(current->restriction_level < current->restricions_list[i].restriction_threshold) {
+			if(current->proc_restriction_level < current->restricions_list[i].restriction_threshold) {
 				recording_forbidden_activity(current, syscall_num, restricions_list[i].restriction_threshold);
 				return 0;
 			}

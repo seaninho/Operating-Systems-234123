@@ -1,5 +1,6 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
+#define LOG_SIZE 100
 
 // Description:
 //    Imposes the restrictions for the process with PID= ​pid ​ with respect to the given
@@ -42,7 +43,34 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
   if (size < 0){
     return -EINVAL;
   }
-
+  
+  p->log_forbidden_activity = kmalloc(LOG_SIZE*sizeof(fai), GFP_KERNEL);
+  // Allocation failure
+  if (!(p->log_forbidden_activity)){
+	return -ENOMEM;
+  }
+  
+  copy_from_user(p->restricions_list, restrictions_list,size*sizeof(scr));
+  // Copy failure
+  if (!(p->restricions_list)){
+	return -ENOMEM;
+  }
+  
+  p->proc_restriction_level = proc_restriction_level;
+  p->restricions_list_size = size;
+  p->violations = 0 ;
+  p->feature = ON ;
+  
+  // resetting the log array
+  int i=0 ;
+  for ( ; i<size ; i++) {
+	p->forbidden_activity[i].syscall_num = -1 ;
+	p->forbidden_activity[i].syscall_restriction_threshold = -1 ;
+	p->forbidden_activity[i].proc_restriction_level = -1 ;
+	p->forbidden_activity[i].time = -1 ;
+  }
+	
+  return 0;
 }
 
 // Description:
