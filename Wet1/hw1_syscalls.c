@@ -40,7 +40,7 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
     return -EINVAL;
   }
   // Invalid size
-  if (size < 0){
+  if (list_size < 0){
     return -EINVAL;
   }
   
@@ -50,14 +50,14 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
 	return -ENOMEM;
   }
   
-  copy_from_user(p->restricions_list, restrictions_list,size*sizeof(scr));
+  copy_from_user(p->restrictions_list, restrictions_list,list_size*sizeof(scr));
   // Copy failure
-  if (!(p->restricions_list)){
+  if (!(p->restrictions_list)){
 	return -ENOMEM;
   }
   
   p->proc_restriction_level = proc_restriction_level;
-  p->restricions_list_size = size;
+  p->restriction_list_size = list_size;
   p->violations = 0 ;
   p->feature = ON ;
   

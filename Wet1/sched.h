@@ -479,10 +479,10 @@ struct task_struct {
 	int​ proc_restriction_level;
 	
 /* Restriction list */
-	scr* restricions_list;
+	scr* restrictions_list;
 	
 /* Size restriction list */
-	int restricions_list_size;
+	int restriction_list_size;
 
 /* Log of forbidden activity */
 	fai* log_forbidden_activity;

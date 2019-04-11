@@ -31,10 +31,10 @@ int is_valid(int syscall_num) {
 		return 1;
 	}
 	int i = 0;
-	for( ; i < current->restricions_list_size ; i++ ) {
-		if(current->restricions_list[i].syscall_num == syscall_num) {
-			if(current->proc_restriction_level < current->restricions_list[i].restriction_threshold) {
-				recording_forbidden_activity(current, syscall_num, restricions_list[i].restriction_threshold);
+	for( ; i < current->restriction_list_size ; i++ ) {
+		if(current->restrictions_list[i].syscall_num == syscall_num) {
+			if(current->proc_restriction_level < current->restrictions_list[i].restriction_threshold) {
+				recording_forbidden_activity(current, syscall_num, restrictions_list[i].restriction_threshold);
 				return 0;
 			}
 			else {
