@@ -61,7 +61,7 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
   }
 
   // Failure in copying
-  if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr)) > 0) {
+  if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr))) {
     return -ENOMEM;
   }
 
@@ -148,19 +148,12 @@ int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
 
   // *** TODO: CHECK!!! *** //
 
-  copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai));
   // Failure in copying
-  if (!()){
-	return -ENOMEM;
-  }
-
-  // Failure in copying
-  if (copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai)) > 0) {
+  if (copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
     return -ENOMEM;
   }
 
-  // ******* //
-
+  return 0;
 }
 
 int validate_pid(pid_t pid, task_struct* p) {
