@@ -63,7 +63,7 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
   
   // resetting the log array
   int i=0 ;
-  for ( ; i<size ; i++) {
+  for ( ; i<LOG_SIZE ; i++) {
 	p->forbidden_activity[i].syscall_num = -1 ;
 	p->forbidden_activity[i].syscall_restriction_threshold = -1 ;
 	p->forbidden_activity[i].proc_restriction_level = -1 ;
