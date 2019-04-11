@@ -663,9 +663,9 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_sched_getaffinity)
 
 	#hw_1
-	.long SYMBOL_NAME(​sc_restrict)           /* System Call no.243 */
-	.long SYMBOL_NAME(set_proc_restriction)  /* System Call no.244 */
-	.long SYMBOL_NAME(get_process_log)       /* System Call no.245 */
+	.long SYMBOL_NAME(​sys_sc_restrict)           /* System Call no.243 */
+	.long SYMBOL_NAME(sys_set_proc_restriction)  /* System Call no.244 */
+	.long SYMBOL_NAME(sys_get_process_log)       /* System Call no.245 */
 	#end hw_1
 
 

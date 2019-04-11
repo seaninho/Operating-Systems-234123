@@ -1,5 +1,7 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
+#include <linux/slab.h>
+#include <asm/uaccess.h>
 #define LOG_SIZE 100
 
 // Description:
@@ -29,7 +31,7 @@
 //        o On memory allocation failure errno should contain ​ENOMEM
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
-int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, scr* restrictions_list, ​int​ list_size) {
+int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr* restrictions_list, ​int​ list_size) {
   struct task_struct* p;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
@@ -43,33 +45,42 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
   if (list_size < 0){
     return -EINVAL;
   }
-  
+
   p->log_forbidden_activity = kmalloc(LOG_SIZE*sizeof(fai), GFP_KERNEL);
   // Allocation failure
   if (!(p->log_forbidden_activity)){
 	return -ENOMEM;
   }
-  
-  copy_from_user(p->restrictions_list, restrictions_list,list_size*sizeof(scr));
-  // Copy failure
-  if (!(p->restrictions_list)){
+
+  // *** TODO: CHECK!!! *** //
+
+  copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr));
+  // Failure in copying
+  if (!(p->restrictions_list)) {
 	return -ENOMEM;
   }
-  
+
+  // Failure in copying
+  if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr)) > 0) {
+    return -ENOMEM;
+  }
+
+  // ******* //
+
   p->proc_restriction_level = proc_restriction_level;
   p->restriction_list_size = list_size;
-  p->violations = 0 ;
-  p->feature = ON ;
-  
+  p->violations = 0;
+  p->feature = ON;
+
   // resetting the log array
-  int i=0 ;
+  int i = 0;
   for ( ; i<LOG_SIZE ; i++) {
 	p->log_forbidden_activity[i].syscall_num = -1 ;
 	p->log_forbidden_activity[i].syscall_restriction_threshold = -1 ;
 	p->log_forbidden_activity[i].proc_restriction_level = -1 ;
 	p->log_forbidden_activity[i].time = -1 ;
   }
-	
+
   return 0;
 }
 
@@ -90,7 +101,7 @@ int​ ​sc_restrict​​ (​pid_t​ pid ,​int​ proc_restriction_level, 
 //        o If proc_restriction_level<0 or proc_restriction_level>2 errno should contain
 //          EINVAL
 //        o On any other failure errno should contain ​EINVAL
-int​ ​set_proc_restriction​ (pid_t​ pid ,​int​ proc_restriction_level) {
+int​ sys_set_proc_restriction(pid_t​ pid ,​int​ proc_restriction_level) {
   struct task_struct* p;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
@@ -122,15 +133,37 @@ int​ ​set_proc_restriction​ (pid_t​ pid ,​int​ proc_restriction_leve
 //        o If size<0 errno should contain ​EINVAL
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
-int ​get_process_log (​pid_t ​ pid, ​int ​ size, fai* user_mem) {
+int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
   struct task_struct* p;
+  // Invalid pid
   if (validate_pid(pid, p) == -1) {
     return -ESRCH;
   }
+  // record == forbidden activity
+  int num_of_records = p->violations;
+  // Invalid number of records
+  if (size < 0 || size > num_of_records) {
+    return -EINVAL;
+  }
+
+  // *** TODO: CHECK!!! *** //
+
+  copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai));
+  // Failure in copying
+  if (!()){
+	return -ENOMEM;
+  }
+
+  // Failure in copying
+  if (copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai)) > 0) {
+    return -ENOMEM;
+  }
+
+  // ******* //
 
 }
 
-int validate_pid (pid_t pid, task_struct* p) {
+int validate_pid(pid_t pid, task_struct* p) {
   // Invalid PID
   if (pid < 0) {
     return -1;
