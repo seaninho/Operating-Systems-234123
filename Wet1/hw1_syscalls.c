@@ -4,6 +4,20 @@
 #include <asm/uaccess.h>
 #define LOG_SIZE 100
 
+int validate_pid(pid_t pid, task_t* p) {
+  // Invalid PID
+  if (pid < 0) {
+     return -1;
+  }
+  task_t* tmp = find_task_by_pid(pid);
+  // If p is NULL, there is no process with this pid.
+  if (tmp == NULL) {
+     return -1;
+  }
+  p = tmp;
+  return 0;
+}
+
 // Description:
 //    Imposes the restrictions for the process with PID= ​pid ​ with respect to the given
 //    proc_restriciton_level and the ​restricitions_list.​ The restriction level of this process should
@@ -31,8 +45,8 @@
 //        o On memory allocation failure errno should contain ​ENOMEM
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
-int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr* restrictions_list, ​int​ list_size) {
-  struct task_struct* p;
+int sys_sc_restrict(pid_t pid, int proc_restriction_level, scr* restriction_list, int list_size) {
+  task_t* p = NULL;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
      return -ESRCH;
@@ -48,7 +62,7 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
   // In case this method was called before, its last invocation takes effect
   if (p->feature == ON) {
      kfree(p->log_forbidden_activity);
-     kfree(p->restriction_list);
+     kfree(p->restrictions_list);
   }
 
   p->log_forbidden_activity = kmalloc(LOG_SIZE*sizeof(fai), GFP_KERNEL);
@@ -57,18 +71,18 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
      return -ENOMEM;
   }
 
-  p->restricitions_list = kmalloc(list_size*sizeof(scr), GFP_KERNEL);
+  p->restrictions_list = kmalloc(list_size*sizeof(scr), GFP_KERNEL);
   // Allocation failure
-  if (!(p->restricitions_list)) {
+  if (!(p->restrictions_list)) {
      kfree(p->log_forbidden_activity);
      return -ENOMEM;
   }
 
   if (list_size > 0) {
       // Failure in copying
-      if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr))) {
+      if (copy_from_user(p->restrictions_list, restriction_list, list_size*sizeof(scr))) {
          kfree(p->log_forbidden_activity);
-         kfree(p->restriction_list);
+         kfree(p->restrictions_list);
          return -ENOMEM;
       }
   }
@@ -107,8 +121,8 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
 //        o If proc_restriction_level<0 or proc_restriction_level>2 errno should contain
 //          EINVAL
 //        o On any other failure errno should contain ​EINVAL
-int​ sys_set_proc_restriction(pid_t​ pid ,​int​ proc_restriction_level) {
-  struct task_struct* p;
+int sys_set_proc_restriction(pid_t pid, int proc_restriction_level) {
+  task_t* p = NULL;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
      return -ESRCH;
@@ -118,7 +132,7 @@ int​ sys_set_proc_restriction(pid_t​ pid ,​int​ proc_restriction_level) 
      return -EINVAL;
   }
 
-  p -> proc_restriction_level = proc_restriction_level;
+  p->proc_restriction_level = proc_restriction_level;
   return 0;
 }
 
@@ -139,8 +153,8 @@ int​ sys_set_proc_restriction(pid_t​ pid ,​int​ proc_restriction_level) 
 //        o If size<0 errno should contain ​EINVAL
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
-int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
-  struct task_struct* p;
+int sys_get_process_log(pid_t pid, int size, fai* user_mem) {
+  task_t* p = NULL;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
      return -ESRCH;
@@ -153,24 +167,9 @@ int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
   }
 
   // Failure in copying
-  if (copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
+  if (copy_to_user(user_mem, (p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
      return -ENOMEM;
   }
 
-  return 0;
-}
-
-int validate_pid(pid_t pid, task_struct* p) {
-  // Invalid PID
-  if (pid < 0) {
-     return -1;
-  }
-  struct task_struct* tmp;
-  tmp = find_task_by_pid(pid);
-  // If p is NULL, there is no process with this pid.
-  if (tmp == NULL) {
-     return -1;
-  }
-  p = tmp;
   return 0;
 }
