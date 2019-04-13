@@ -204,7 +204,7 @@ ENTRY(system_call)
 	# HW1
 	pushl %eax
 	call SYMBOL_NAME(is_valid)
-	jae forbidensys
+	jae forbiddensys
 	popl %eax
 	# HW1 end
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
@@ -252,7 +252,7 @@ badsys:
 	movl $-ENOSYS,EAX(%esp)
 	jmp ret_from_sys_call
 # HW1
-forbidensys:
+forbiddensys:
 	popl %eax
 	movl $-ENOSYS,EAX(%esp)
 	jmp ret_from_sys_call
