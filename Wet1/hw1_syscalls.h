@@ -59,5 +59,5 @@ int get_process_log(pid_t pid, int size, fai* user_mem){
 		errno = (-res);
 		return -1;
 	}
-	return 0;	
+	return 0;
 }

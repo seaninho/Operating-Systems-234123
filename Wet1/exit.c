@@ -43,8 +43,8 @@ static void release_task(struct task_struct * p)
 		kfree(p->restrictions_list);
 	}
 
-	/* HW1 */
-	
+	/* HW1 end */
+
 	unhash_process(p);
 
 	release_thread(p);

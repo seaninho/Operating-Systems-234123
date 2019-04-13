@@ -479,7 +479,7 @@ struct task_struct {
 	policy_flag feature;
 
 /* Restriction level */
-	int​ proc_restriction_level;
+	int proc_restriction_level;
 
 /* Size restriction list */
 	int restriction_list_size;
