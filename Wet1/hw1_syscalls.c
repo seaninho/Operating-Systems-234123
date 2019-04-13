@@ -35,37 +35,43 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
   struct task_struct* p;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
-    return -ESRCH;
+     return -ESRCH;
   }
   // Invalid restriction level
   if (proc_restriction_level < 0 || proc_restriction_level > 2) {
-    return -EINVAL;
+     return -EINVAL;
   }
   // Invalid size
-  if (list_size < 0){
-    return -EINVAL;
+  if (list_size < 0) {
+     return -EINVAL;
+  }
+  // In case this method was called before, its last invocation takes effect
+  if (p->feature == ON) {
+     kfree(p->log_forbidden_activity);
+     kfree(p->restriction_list);
   }
 
   p->log_forbidden_activity = kmalloc(LOG_SIZE*sizeof(fai), GFP_KERNEL);
   // Allocation failure
-  if (!(p->log_forbidden_activity)){
-	return -ENOMEM;
+  if (!(p->log_forbidden_activity)) {
+     return -ENOMEM;
   }
 
-  // *** TODO: CHECK!!! *** //
-
-  copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr));
-  // Failure in copying
-  if (!(p->restrictions_list)) {
-	return -ENOMEM;
+  p->restricitions_list = kmalloc(list_size*sizeof(scr), GFP_KERNEL);
+  // Allocation failure
+  if (!(p->restricitions_list)) {
+     kfree(p->log_forbidden_activity);
+     return -ENOMEM;
   }
 
-  // Failure in copying
-  if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr))) {
-    return -ENOMEM;
+  if (list_size > 0) {
+      // Failure in copying
+      if (copy_from_user(p->restrictions_list, restrictions_list, list_size*sizeof(scr))) {
+         kfree(p->log_forbidden_activity);
+         kfree(p->restriction_list);
+         return -ENOMEM;
+      }
   }
-
-  // ******* //
 
   p->proc_restriction_level = proc_restriction_level;
   p->restriction_list_size = list_size;
@@ -75,10 +81,10 @@ int​ ​sys_sc_restrict(​pid_t​ pid ,​int​ proc_restriction_level, scr
   // resetting the log array
   int i = 0;
   for ( ; i<LOG_SIZE ; i++) {
-	p->log_forbidden_activity[i].syscall_num = -1 ;
-	p->log_forbidden_activity[i].syscall_restriction_threshold = -1 ;
-	p->log_forbidden_activity[i].proc_restriction_level = -1 ;
-	p->log_forbidden_activity[i].time = -1 ;
+  	 p->log_forbidden_activity[i].syscall_num = -1 ;
+  	 p->log_forbidden_activity[i].syscall_restriction_threshold = -1 ;
+  	 p->log_forbidden_activity[i].proc_restriction_level = -1 ;
+  	 p->log_forbidden_activity[i].time = -1 ;
   }
 
   return 0;
@@ -105,11 +111,11 @@ int​ sys_set_proc_restriction(pid_t​ pid ,​int​ proc_restriction_level) 
   struct task_struct* p;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
-    return -ESRCH;
+     return -ESRCH;
   }
   // Invalid restriction level
   if (proc_restriction_level < 0 || proc_restriction_level > 2) {
-    return -EINVAL;
+     return -EINVAL;
   }
 
   p -> proc_restriction_level = proc_restriction_level;
@@ -137,20 +143,18 @@ int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
   struct task_struct* p;
   // Invalid pid
   if (validate_pid(pid, p) == -1) {
-    return -ESRCH;
+     return -ESRCH;
   }
   // record == forbidden activity
   int num_of_records = p->violations;
   // Invalid number of records
   if (size < 0 || size > num_of_records) {
-    return -EINVAL;
+     return -EINVAL;
   }
-
-  // *** TODO: CHECK!!! *** //
 
   // Failure in copying
   if (copy_to_user(user_mem, *(p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
-    return -ENOMEM;
+     return -ENOMEM;
   }
 
   return 0;
@@ -159,13 +163,13 @@ int sys_get_process_log(​pid_t pid, ​int size, fai* user_mem) {
 int validate_pid(pid_t pid, task_struct* p) {
   // Invalid PID
   if (pid < 0) {
-    return -1;
+     return -1;
   }
   struct task_struct* tmp;
   tmp = find_task_by_pid(pid);
   // If p is NULL, there is no process with this pid.
   if (tmp == NULL) {
-    return -1;
+     return -1;
   }
   p = tmp;
   return 0;

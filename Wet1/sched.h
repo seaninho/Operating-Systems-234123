@@ -475,23 +475,23 @@ struct task_struct {
 
 /* HW1 */
 
+/* Feature */
+	policy_flag feature;
+
 /* Restriction level */
 	int​ proc_restriction_level;
 
-/* Restriction list */
-	scr* restrictions_list;
-
 /* Size restriction list */
 	int restriction_list_size;
+
+/* Restriction list */
+	scr* restrictions_list;
 
 /* Log of forbidden activity */
 	fai* log_forbidden_activity;
 
 /* Number of forbidden activities */
 	int violations;
-
-/* Feature */
-	policy_flag feature;
 
 /* HW1 end */
 };
@@ -598,7 +598,15 @@ extern struct exec_domain	default_exec_domain;
     pending:		{ NULL, &tsk.pending.head, {{0}}},		\
     blocked:		{{0}},						\
     alloc_lock:		SPIN_LOCK_UNLOCKED,				\
-    journal_info:	NULL,						\
+    journal_info:	NULL, 		\
+	 /* HW1 */						\
+	 feature: OFF,						\
+	 proc_restriction_level: -1,	\
+	 restriction_list_size: -1,	\
+	 restrictions_list: NULL,		\
+	 log_forbidden_activity: NULL, \
+	 violations: -1,					\
+	 /* HW1 end */						\
 }
 
 
