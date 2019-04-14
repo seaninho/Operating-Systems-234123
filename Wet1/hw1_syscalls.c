@@ -4,17 +4,16 @@
 #include <asm/uaccess.h>
 #define LOG_SIZE 100
 
-int validate_pid(pid_t pid, task_t* p) {
+int validate_pid(pid_t pid) {
   // Invalid PID
   if (pid < 0) {
      return -1;
   }
   task_t* tmp = find_task_by_pid(pid);
-  // If p is NULL, there is no process with this pid.
+  // If tmp is NULL, there is no process with this pid.
   if (tmp == NULL) {
      return -1;
   }
-  p = tmp;
   return 0;
 }
 
@@ -46,11 +45,11 @@ int validate_pid(pid_t pid, task_t* p) {
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
 int sys_sc_restrict(pid_t pid, int proc_restriction_level, scr* restriction_list, int list_size) {
-  task_t* p = NULL;
   // Invalid pid
-  if (validate_pid(pid, p) == -1) {
+  if (validate_pid(pid) == -1) {
      return -ESRCH;
   }
+  task_t* p = find_task_by_pid(pid);
   // Invalid restriction level
   if (proc_restriction_level < 0 || proc_restriction_level > 2) {
      return -EINVAL;
@@ -122,18 +121,18 @@ int sys_sc_restrict(pid_t pid, int proc_restriction_level, scr* restriction_list
 //          EINVAL
 //        o On any other failure errno should contain ​EINVAL
 int sys_set_proc_restriction(pid_t pid, int proc_restriction_level) {
-  task_t* p = NULL;
-  // Invalid pid
-  if (validate_pid(pid, p) == -1) {
-     return -ESRCH;
-  }
-  // Invalid restriction level
-  if (proc_restriction_level < 0 || proc_restriction_level > 2) {
-     return -EINVAL;
-  }
+   // Invalid pid
+   if (validate_pid(pid) == -1) {
+      return -ESRCH;
+   }
+   task_t* p = find_task_by_pid(pid);
+   // Invalid restriction level
+   if (proc_restriction_level < 0 || proc_restriction_level > 2) {
+      return -EINVAL;
+   }
 
-  p->proc_restriction_level = proc_restriction_level;
-  return 0;
+   p->proc_restriction_level = proc_restriction_level;
+   return 0;
 }
 
 // Description:
@@ -154,22 +153,22 @@ int sys_set_proc_restriction(pid_t pid, int proc_restriction_level) {
 //        o On memory copy failure errno should contain ​ENOMEM
 //        o On any other failure errno should contain ​EINVAL
 int sys_get_process_log(pid_t pid, int size, fai* user_mem) {
-  task_t* p = NULL;
-  // Invalid pid
-  if (validate_pid(pid, p) == -1) {
-     return -ESRCH;
-  }
-  // record == forbidden activity
-  int num_of_records = p->violations;
-  // Invalid number of records
-  if (size < 0 || size > num_of_records) {
-     return -EINVAL;
-  }
+   // Invalid pid
+   if (validate_pid(pid) == -1) {
+      return -ESRCH;
+   }
+   task_t* p = find_task_by_pid(pid);
+   // record == forbidden activity
+   int num_of_records = p->violations;
+   // Invalid number of records
+   if (size < 0 || size > num_of_records) {
+      return -EINVAL;
+   }
 
-  // Failure in copying
-  if (copy_to_user(user_mem, (p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
-     return -ENOMEM;
-  }
+   // Failure in copying
+   if (copy_to_user(user_mem, (p->log_forbidden_activity + num_of_records - size), size*sizeof(fai))) {
+      return -ENOMEM;
+   }
 
-  return 0;
+   return 0;
 }
