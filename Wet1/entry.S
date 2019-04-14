@@ -204,7 +204,8 @@ ENTRY(system_call)
 	# HW1
 	pushl %eax
 	call SYMBOL_NAME(is_valid)
-	jae forbiddensys
+	cmpl $0,%eax
+	je forbiddensys
 	popl %eax
 	# HW1 end
 	call *SYMBOL_NAME(sys_call_table)(,%eax,4)
