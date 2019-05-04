@@ -30,35 +30,6 @@ extern unsigned long event;
 
 struct exec_domain;
 
-/* hw2 */
-
-typedef enum {
-   OFF = 0,
-   ON = 1
-}  logger_flag;
-
-typedef struct {
-	 pid_t prev;
-	 pid_t next;
-	 int prev_priority;
-	 int next_priority;
-	 int prev_policy;
-	 int next_policy;
-	 long switch_time;
-	 int n_tickets;
-} cs_log;
-
-
-extern logger_flag logger_f;
-extern int num_of_records;
-extern int length_logger;
-extern cs_log* logger;
-extern int NT;
-/* end hw2 */
-
-
-
-
 /*
  * cloning flags:
  */
@@ -148,10 +119,12 @@ extern unsigned long nr_uninterruptible(void);
 #define SCHED_OTHER		0
 #define SCHED_FIFO		1
 #define SCHED_RR		2
-#define SCHED_LOTTERY	3 
+#define SCHED_SHORT     5
 
 struct sched_param {
-	int sched_priority;
+	int sched_priority; //ignored for SHORT processes
+	int requested_time; //between 1 and 3000
+	int sched_short_prio; //between 0 and 139
 };
 
 struct completion;
@@ -211,10 +184,6 @@ extern int current_is_keventd(void);
 #define MAX_RT_PRIO		MAX_USER_RT_PRIO
 
 #define MAX_PRIO		(MAX_RT_PRIO + 40)
-
-/* hw2 */ 
-extern int num_of_tasks[MAX_PRIO]; 
-/* end hw2 */
 
 /*
  * The maximum RT priority is configurable.  If the resulting
@@ -486,9 +455,9 @@ struct task_struct {
 /* journalling filesystem info */
 	void *journal_info;
 	
-	/* hw2 */
-	unsigned long old_policy;
-	/* end hw2 */
+	int old_static_prio ; //hw_2
+	int requested_time ; //hw_2
+
 };
 
 /*
@@ -594,6 +563,7 @@ extern struct exec_domain	default_exec_domain;
     blocked:		{{0}},						\
     alloc_lock:		SPIN_LOCK_UNLOCKED,				\
     journal_info:	NULL,						\
+	old_static_prio: MAX_PRIO-20 \
 }
 
 

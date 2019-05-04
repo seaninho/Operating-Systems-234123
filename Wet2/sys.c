@@ -212,6 +212,10 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 
 	read_lock(&tasklist_lock);
 	for_each_task(p) {
+		//hw_2
+		if( p->policy == SCHED_SHORT)
+			continue;
+		//end hw_2
 		if (!proc_sel(p, which, who))
 			continue;
 		if (p->uid != current->euid &&

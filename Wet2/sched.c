@@ -26,8 +26,6 @@
 #include <linux/interrupt.h>
 #include <linux/completion.h>
 #include <linux/kernel_stat.h>
-#include <linux/slab.h> //hw2
-#include <linux/random.h> //hw2
 
 /*
  * Convert user-nice values [ -20 ... 0 ... 19 ]
@@ -128,57 +126,8 @@ struct prio_array {
 	list_t queue[MAX_PRIO];
 };
 
-
-
-/*	hw2	*/
-logger_flag logger_f = OFF;
-logger_flag lottery = OFF;
-int num_of_records = 0;
-int length_logger = 0;
-cs_log* logger = NULL;
-int NT = 0;
-int num_of_tasks[MAX_PRIO] = {0};
-int MAX_TICKETS = 0 ;
-
-//*****************************Logger*****************************//
-
-// recording to the logger
-void recording_to_logger(struct task_struct *prev,struct task_struct *next) {
-	int i = num_of_records ;
-	if ( logger_f == ON && i < length_logger) {
-		logger[i].prev = prev->pid ;
-		logger[i].next = next->pid ;
-		logger[i].prev_priority = prev->prio ;
-		logger[i].next_priority = next->prio ;
-		logger[i].prev_policy = prev->policy ;
-		logger[i].next_policy = next->policy ;
-		logger[i].switch_time = jiffies ; 
-		if(MAX_TICKETS > 0 && MAX_TICKETS < NT)
-			logger[i].n_tickets = MAX_TICKETS ;
-		else
-			logger[i].n_tickets = NT ;
-		num_of_records ++;
-	}
-}
-
-// empties the logger 
-void empties_log() {
-	int i=0 ;
-	for ( ; i<num_of_records ; i++) {
-		logger[i].prev = -1;
-		logger[i].next= -1;
-		logger[i].prev_priority = -1;
-		logger[i].next_priority = -1;
-		logger[i].prev_policy = -1;
-		logger[i].next_policy = -1 ;
-		logger[i].switch_time = -1;
-	}
-	num_of_records = 0;
-}
-
-/*	end hw2	 */
-
-
+//hw_2
+int bitmap_short[MAX_PRIO] = {0};
 
 /*
  * This is the main, per-CPU runqueue data structure.
@@ -204,7 +153,7 @@ static struct runqueue runqueues[NR_CPUS] __cacheline_aligned;
 #define this_rq()		cpu_rq(smp_processor_id())
 #define task_rq(p)		cpu_rq((p)->cpu)
 #define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
-#define rt_task(p)		((p)->prio < MAX_RT_PRIO)
+#define rt_task(p)		((p)->prio < MAX_RT_PRIO) || ((p)->policy == SCHED_SHORT)
 
 /*
  * Default context-switch locking:
@@ -266,20 +215,47 @@ static inline void rq_unlock(runqueue_t *rq)
  */
 static inline void dequeue_task(struct task_struct *p, prio_array_t *array)
 {
-	num_of_tasks[p->prio]--; // hw2
-	NT -= MAX_PRIO-p->prio ; //hw2
 	array->nr_active--;
 	list_del(&p->run_list);
-	if (list_empty(array->queue + p->prio))
+	if (list_empty(array->queue + p->prio)){
 		__clear_bit(p->prio, array->bitmap);
+		// hw_2
+		if( p->policy == SCHED_SHORT ){
+			bitmap_short[p->prio] -- ;
+		}
+		// end hw_2
+	}
+		
 }
 
 static inline void enqueue_task(struct task_struct *p, prio_array_t *array)
 {
-	num_of_tasks[p->prio]++; // hw2
-	NT += MAX_PRIO-p->prio ; //hw2
-	list_add_tail(&p->run_list, array->queue + p->prio);
-	__set_bit(p->prio, array->bitmap);
+	// hw_2
+	if( p->policy != SCHED_SHORT ||  p->prio <= 99 ){
+		list_add_tail(&p->run_list, array->queue + p->prio);
+		__set_bit(p->prio, array->bitmap);
+		if(p->policy == SCHED_SHORT)
+			bitmap_short[p->prio] ++ ;
+	}
+	else {
+		if (list_empty(array->queue + p->prio)){
+			list_add_tail(&p->run_list, array->queue + p->prio);
+		}
+		else{
+			struct list_head* pos ,*n;
+			task_t* cur;
+			list_for_each_safe(pos,n, array->queue + p->prio){
+				cur = list_entry(pos,task_t,run_list);
+				if(cur->policy != SCHED_SHORT){
+					list_add_tail(&p->run_list, cur);
+					break;
+				}
+			}
+		}
+		bitmap_short[p->prio] ++ ;
+	}
+	// end hw_2
+
 	array->nr_active++;
 	p->array = array;
 }
@@ -299,6 +275,12 @@ static inline int effective_prio(task_t *p)
 	 *
 	 * Both properties are important to certain workloads.
 	 */
+	 
+	 //hw_2
+	if(p->policy == SCHED_SHORT)
+		return p->prio ;
+	//end hw_2
+	
 	bonus = MAX_USER_PRIO*PRIO_BONUS_RATIO*p->sleep_avg/MAX_SLEEP_AVG/100 -
 			MAX_USER_PRIO*PRIO_BONUS_RATIO/100/2;
 
@@ -483,7 +465,8 @@ void sched_exit(task_t * p)
 {
 	__cli();
 	if (p->first_time_slice) {
-		current->time_slice += p->time_slice;
+		if( p->policy != SCHED_SHORT) //hw_2
+			current->time_slice += p->time_slice;
 		if (unlikely(current->time_slice > MAX_TIMESLICE))
 			current->time_slice = MAX_TIMESLICE;
 	}
@@ -816,15 +799,20 @@ void scheduler_tick(int user_tick, int system)
 			dequeue_task(p, rq->active);
 			enqueue_task(p, rq->active);
 		}
-		if(p->policy == SCHED_LOTTERY && !--p->time_slice){  // hw2
-			p->time_slice = MAX_TIMESLICE;
+		//hw_2
+		if ((p->policy == SCHED_SHORT) && !--p->time_slice) {
+			p->policy = SCHED_OTHER ;
+			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO-1) ;
+			p->sleep_avg = 0.5*MAX_SLEEP_AVG ;
+			p->prio = effective_prio(p);	
+			p->time_slice = TASK_TIMESLICE(p);
 			p->first_time_slice = 0;
 			set_tsk_need_resched(p);
 
 			/* put it at the end of the queue: */
 			dequeue_task(p, rq->active);
 			enqueue_task(p, rq->active);
-		}
+		} //end hw_2
 		goto out;
 	}
 	/*
@@ -838,30 +826,18 @@ void scheduler_tick(int user_tick, int system)
 	if (p->sleep_avg)
 		p->sleep_avg--;
 	if (!--p->time_slice) {
-		if(p->policy == SCHED_LOTTERY ){  // hw2
-			dequeue_task(p, rq->active);
-			set_tsk_need_resched(p);
-			if(p->prio >= MAX_RT_PRIO)
-				p->prio = effective_prio(p);
-			p->first_time_slice = 0;
-			p->time_slice = MAX_TIMESLICE;
+		dequeue_task(p, rq->active);
+		set_tsk_need_resched(p);
+		p->prio = effective_prio(p);
+		p->first_time_slice = 0;
+		p->time_slice = TASK_TIMESLICE(p);
+
+		if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
+			if (!rq->expired_timestamp)
+				rq->expired_timestamp = jiffies;
+			enqueue_task(p, rq->expired);
+		} else
 			enqueue_task(p, rq->active);
-		}
-		else {
-			dequeue_task(p, rq->active);
-			set_tsk_need_resched(p);
-			p->prio = effective_prio(p);
-			p->first_time_slice = 0;
-			p->time_slice = TASK_TIMESLICE(p);
-			
-			
-			if (!TASK_INTERACTIVE(p) || EXPIRED_STARVING(rq)) {
-				if (!rq->expired_timestamp)
-					rq->expired_timestamp = jiffies;
-				enqueue_task(p, rq->expired);
-			} else
-				enqueue_task(p, rq->active);		
-		}
 	}
 out:
 #if CONFIG_SMP
@@ -887,19 +863,6 @@ asmlinkage void schedule(void)
 	if (unlikely(in_interrupt()))
 		BUG();
 
-	/* hw2 */
-	if( lottery == ON && current->policy != SCHED_LOTTERY && current->array) {
-		deactivate_task(current, task_rq(current));
-		current->old_policy = current->policy;
-		current->policy = SCHED_LOTTERY;
-		activate_task(current, task_rq(current));
-	}		
-	if( lottery == OFF && current->policy == SCHED_LOTTERY && current->array) {
-		deactivate_task(current, task_rq(current));
-		current->policy = current->old_policy ;
-		activate_task(current, task_rq(current));
-	}/* end hw2 */
-	
 need_resched:
 	prev = current;
 	rq = this_rq();
@@ -944,48 +907,28 @@ pick_next_task:
 		array = rq->active;
 		rq->expired_timestamp = 0;
 	}
+
+	idx = sched_find_first_bit(array->bitmap);
 	
-	/* hw2 */
-	unsigned int ticket_num = 0;
-	if (current->policy == SCHED_LOTTERY) { 
-		get_random_bytes(&ticket_num, sizeof(unsigned int));
-		if (MAX_TICKETS > 0 && MAX_TICKETS<NT)
-			ticket_num = ticket_num	% MAX_TICKETS;
-		else
-			ticket_num = ticket_num	% NT;
-		int curr_num_of_ticket = 0;
-		int i = 0;
+	//hw_2
+	int i = 0 ,firs_short = -1 ;
+	
+	//find first sort task
+	for(; i<MAX_PRIO ; i++ ){
+		if(bitmap_short[i] > 0 ){
+			firs_short = i;
+			break ;
+		}
 
-		while (curr_num_of_ticket <= ticket_num) {
-			curr_num_of_ticket += num_of_tasks[i]* (MAX_PRIO-i);
-			i++;
-		}
-		curr_num_of_ticket -= num_of_tasks[i-1]* (MAX_PRIO-(i-1));
-		struct list_head* pos ,*n;
-		list_for_each_safe(pos,n, &this_rq()->active->queue[i-1])	{
-			curr_num_of_ticket += (MAX_PRIO-(i-1));
-			if (curr_num_of_ticket > ticket_num)	{
-				next = list_entry(pos,task_t,run_list);
-				break;
-			}
-		}
-		if( next->policy != SCHED_LOTTERY && next->array) {
-			next->old_policy = next->policy;
-			next->policy = SCHED_LOTTERY; 
-		}
-				
-	} /*end hw2 */
-
-	else{
-		idx = sched_find_first_bit(array->bitmap);
-		queue = array->queue + idx;
-		next = list_entry(queue->next, task_t, run_list);
 	}
 	
-	/* hw2 */
-	recording_to_logger(prev,next);
-	/* end hw2 */
-
+	if( firs_short <= idx && idx > 99 && firs_short> 99)
+		idx = firs_short;
+	
+	//end hw_2
+	
+	queue = array->queue + idx;
+	next = list_entry(queue->next, task_t, run_list);
 
 switch_tasks:
 	prefetch(next);
@@ -1169,6 +1112,12 @@ void set_user_nice(task_t *p, long nice)
 
 	if (TASK_NICE(p) == nice || nice < -20 || nice > 19)
 		return;
+	
+	//hw_2
+	if( p->policy == SCHED_SHORT )
+		return;
+	//end hw_2
+	
 	/*
 	 * We have to be careful, if called from sys_setpriority(),
 	 * the task might be in the middle of scheduling on another CPU.
@@ -1213,6 +1162,12 @@ asmlinkage long sys_nice(int increment)
 	 *	We don't have to worry. Conceptually one call occurs first
 	 *	and we have a single winner.
 	 */
+	 
+	//hw_2
+	if( current->policy == SCHED_SHORT )
+		return -EPERM;
+	//end hw_2
+	 
 	if (increment < 0) {
 		if (!capable(CAP_SYS_NICE))
 			return -EPERM;
@@ -1270,13 +1225,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 
 	if (!param || pid < 0)
 		goto out_nounlock;
-	
-	/* hw2 */
-	if (find_process_by_pid(pid)->policy == SCHED_LOTTERY || 
-			(find_process_by_pid(pid)->policy != SCHED_LOTTERY && policy == SCHED_LOTTERY ) )
-		goto out_nounlock;
-	/* end hw2 */
-	
+
 	retval = -EFAULT;
 	if (copy_from_user(&lp, param, sizeof(struct sched_param)))
 		goto out_nounlock;
@@ -1303,7 +1252,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	else {
 		retval = -EINVAL;
 		if (policy != SCHED_FIFO && policy != SCHED_RR &&
-				policy != SCHED_OTHER)
+				policy != SCHED_OTHER && policy != SCHED_SHORT) // hw_2
 			goto out_unlock;
 	}
 
@@ -1312,7 +1261,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_OTHER is 0.
 	 */
 	retval = -EINVAL;
-	if (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1)
+	if (  policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1) )
 		goto out_unlock;
 	if ((policy == SCHED_OTHER) != (lp.sched_priority == 0))
 		goto out_unlock;
@@ -1324,17 +1273,44 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	if ((current->euid != p->euid) && (current->euid != p->uid) &&
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
+	//hw_2
+	if( ( policy == SCHED_SHORT && p->policy != SCHED_OTHER ) || p->policy == SCHED_SHORT ){
+		printk("here 1\n");
+		goto out_unlock;
+	}
+
+	
+	retval = -EINVAL;
+	if( policy == SCHED_SHORT && (lp.requested_time<1 || lp.requested_time>3000 ||
+								  lp.sched_short_prio < 0 || lp.sched_short_prio > 139 ) ){
+		printk("here 2\n");
+		goto out_unlock;
+	}
+	//end hw_2
 
 	array = p->array;
 	if (array)
 		deactivate_task(p, task_rq(p));
 	retval = 0;
 	p->policy = policy;
-	p->rt_priority = lp.sched_priority;
-	if (policy != SCHED_OTHER)
-		p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
-	else
-		p->prio = p->static_prio;
+	
+	//hw_2
+	if( policy != SCHED_SHORT ){
+		p->rt_priority = lp.sched_priority;
+		if (policy != SCHED_OTHER)
+			p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
+		else
+			p->prio = p->static_prio;	
+	}
+	else{
+		p->old_static_prio = p->static_prio ;
+		p->requested_time = lp.requested_time ;
+		p->prio = lp.sched_short_prio ;
+		p->time_slice = lp.requested_time*HZ/1000;
+	}
+
+	//end hw_2
+
 	if (array)
 		activate_task(p, task_rq(p));
 
@@ -1391,7 +1367,12 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock;
-	lp.sched_priority = p->rt_priority;
+	if( p->policy != SCHED_SHORT )
+		lp.sched_priority = p->rt_priority;
+	else{
+		lp.sched_short_prio = p->prio;
+		lp.requested_time = p->requested_time;
+	}
 	read_unlock(&tasklist_lock);
 
 	/*
@@ -1513,44 +1494,42 @@ asmlinkage long sys_sched_yield(void)
 
 	if (unlikely(rt_task(current))) {
 		list_del(&current->run_list);
-		list_add_tail(&current->run_list, array->queue + current->prio);
+		//hw_2
+		if(current->policy != SCHED_SHORT){
+			list_add_tail(&current->run_list, array->queue + current->prio);
+		}
+		else{
+			struct list_head* pos ,*n;
+			task_t* cur;
+			list_for_each_safe(pos,n, array->queue + current->prio){
+				cur = list_entry(pos,task_t,run_list);
+				if(cur->policy != SCHED_SHORT){
+					list_add_tail(&current->run_list, cur);
+					break;
+				}
+			}
+		}
+		//end hw_2
 		goto out_unlock;
 	}
 
 	list_del(&current->run_list);
-	/* hw2 */
-		num_of_tasks[current->prio]--; 
-		NT -= MAX_PRIO-current->prio ;
-	/* hw2 */
 	if (!list_empty(array->queue + current->prio)) {
 		list_add(&current->run_list, array->queue[current->prio].next);
-		/* hw2 */
-			num_of_tasks[current->prio]++; 
-			NT += MAX_PRIO-current->prio ;
-		/* hw2 */	
 		goto out_unlock;
 	}
 	__clear_bit(current->prio, array->bitmap);
 
-	if(current->policy == SCHED_LOTTERY && current->prio < MAX_RT_PRIO ){ //hw2
+	i = sched_find_first_bit(array->bitmap);
+
+	if (i == MAX_PRIO || i <= current->prio)
 		i = current->prio;
-	}
-	else {
-		i = sched_find_first_bit(array->bitmap);
-
-		if (i == MAX_PRIO || i <= current->prio)
-			i = current->prio;
-		else
-			current->prio = i;
-	}
-
+	else
+		current->prio = i;
 
 	list_add(&current->run_list, array->queue[i].next);
-	/* hw2 */
-		num_of_tasks[i]++; 
-		NT += MAX_PRIO-i ;
-	/* hw2 */
 	__set_bit(i, array->bitmap);
+	
 
 out_unlock:
 	spin_unlock(&rq->lock);
@@ -2058,6 +2037,86 @@ int ll_copy_from_user(void *to, const void *from_user, unsigned long len)
 	return 0;
 }
 
+
+
+
+
+
+/////////////////////////////hw2/////////////////////////////
+
+int sys_is_short(pid_t pid){
+	
+	//validate pid
+	if( pid < 0 )
+		return -ESRCH;
+	
+	task_t* p = find_task_by_pid(pid);
+	if(!p)
+		return -ESRCH;
+	
+	return p->policy == SCHED_SHORT ;
+}
+
+int sys_short_remaining_time(pid_t pid){
+	
+	//validate pid
+	if( pid < 0 )
+		return -ESRCH;
+	
+	task_t* p = find_task_by_pid(pid);
+	if(!p)
+		return -ESRCH;
+	
+	if( p->policy != SCHED_SHORT)
+		return -EINVAL;
+	
+	return  p->time_slice*1000/HZ ;
+}
+
+int sys_short_place_in_queue(pid_t pid){
+	
+	//validate pid
+	if( pid < 0 )
+		return -ESRCH;
+	
+	task_t* p = find_task_by_pid(pid);
+	if(!p)
+		return -ESRCH;
+	
+	if( p->policy != SCHED_SHORT)
+		return -EINVAL;
+	
+	int prio = p->prio , i = 0 , total=  0 ;
+	for( ; i < prio ; i++ )
+		total += bitmap_short[i];
+	
+	struct list_head* pos ,*n;
+	runqueue_t *rq;
+	rq = task_rq(p);
+	prio_array_t *array = rq->active;
+	task_t* cur;
+	list_for_each_safe(pos,n, array->queue + prio){
+		cur = list_entry(pos,task_t,run_list);
+		if(cur->pid == pid)
+			break;
+		if(cur->policy == SCHED_SHORT)
+			total++ ;
+	}
+	
+	return total ;
+	
+}
+
+/////////////////////////////end hw2/////////////////////////////
+
+
+
+
+
+
+
+
+
 #ifdef CONFIG_LOLAT_SYSCTL
 struct low_latency_enable_struct __enable_lowlatency = { 0, };
 #endif
@@ -2067,113 +2126,4 @@ struct low_latency_enable_struct __enable_lowlatency = { 0, };
 
 
 
-/////////////////////////////hw2/////////////////////////////
-
-// ================== part 1 =====================
-int sys_enable_logging(int size){
-	if ( logger_f == ON || size < 0 )
-		return -EINVAL ;	
-	
-	if ( length_logger != 0 ) // the logger opend befor
-		kfree(logger);
-		
-	logger = kmalloc(size*sizeof(cs_log), GFP_KERNEL);
-	if (!(logger))
-		return -ENOMEM;
-	
-	// resetting the array
-	int i=0 ;
-  	for ( ; i<size ; i++) {
-			logger[i].prev = -1;
-			logger[i].next= -1;
-			logger[i].prev_priority = -1;
-			logger[i].next_priority = -1;
-			logger[i].prev_policy = -1;
-			logger[i].next_policy = -1 ;
-			logger[i].switch_time = -1;
-			
-	}
-	
-	num_of_records = 0;
-	logger_f = ON;
-	length_logger = size;
-   
-   return 0;
-}
-
-int sys_disable_logging(int size){
-	if ( logger_f == OFF )
-		return -EINVAL ;
-	
-	logger_f = OFF;
-	return 0 ;	
-}
-
-int sys_get_logger_records(cs_log* user_mem){
-	if( user_mem == NULL || copy_to_user( user_mem, logger, num_of_records*sizeof(cs_log)) !=0 ){
-		empties_log();
-		return -ENOMEM ;
-	}
-	int temp = num_of_records;
-	empties_log();
-	return temp;
-}
-
-
-
-// ================== part 2 =====================
-
-int sys_start_lottery_scheduler(){
-	task_t *p = current;
-	if (p->policy == SCHED_LOTTERY) {
-		return -EINVAL;
-	}
-	struct list_head *pos ,*n;
-	int i = 0;
-	task_t* task;
-	for (i = 0 ; i < MAX_PRIO ; i++ ) {
-		list_for_each_safe(pos,n, &this_rq()->expired->queue[i])	{
-			task = list_entry(pos,task_t,run_list);
-			enqueue_task(task,this_rq()->active) ;
-			dequeue_task(task,this_rq()->expired) ;
-		}
-		list_for_each_safe(pos,n, &this_rq()->active->queue[i])	{
-			task = list_entry(pos,task_t,run_list);
-			task->old_policy = task->policy;
-			task->policy = SCHED_LOTTERY;
-			task->time_slice = MAX_TIMESLICE;
-		}		
-	}
-
-	lottery = ON ;
-	schedule();
-	return 0;	
-} 
-
-int sys_start_orig_scheduler(){
-	task_t *p = current;
-	if (p->policy != SCHED_LOTTERY) {
-		return -EINVAL;
-	}
-	struct list_head* pos ,*n;
-	int i = 0;
-	task_t* task;
-	for (i = 0 ; i < MAX_PRIO ; i++ ) {
-		list_for_each_safe(pos,n, &this_rq()->active->queue[i])	{
-			task = list_entry(pos,task_t,run_list);
-			task->policy = task->old_policy;
-			task->time_slice = TASK_TIMESLICE(task);
-		}	
-	}	
-	lottery = OFF ;
-	schedule();
-	return 0;	
-}
-
-void sys_set_max_tickets(int max_tickets){
-	MAX_TICKETS = max_tickets;		
-}
-
-
-/////////////////////////////end hw2/////////////////////////////
 

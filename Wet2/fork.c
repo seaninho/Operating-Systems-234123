@@ -591,6 +591,11 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	unsigned long flags;
 	struct task_struct *p;
 	struct completion vfork;
+	
+	//hw_2
+		if(current->policy == SCHED_SHORT )
+			return -EPERM ;
+	//end hw_2
 
 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
 		return -EINVAL;
