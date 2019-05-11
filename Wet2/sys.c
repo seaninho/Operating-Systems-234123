@@ -46,7 +46,7 @@ int cad_pid = 1;
 /*
  *	Notifier list for kernel code which wants to be called
  *	at shutdown. This is used to stop any idling DMA operations
- *	and the like. 
+ *	and the like.
  */
 
 static struct notifier_block *reboot_notifier_list;
@@ -61,7 +61,7 @@ rwlock_t notifier_lock = RW_LOCK_UNLOCKED;
  *
  *	Currently always returns zero.
  */
- 
+
 int notifier_chain_register(struct notifier_block **list, struct notifier_block *n)
 {
 	write_lock(&notifier_lock);
@@ -86,7 +86,7 @@ int notifier_chain_register(struct notifier_block **list, struct notifier_block 
  *
  *	Returns zero on success, or %-ENOENT on failure.
  */
- 
+
 int notifier_chain_unregister(struct notifier_block **nl, struct notifier_block *n)
 {
 	write_lock(&notifier_lock);
@@ -119,7 +119,7 @@ int notifier_chain_unregister(struct notifier_block **nl, struct notifier_block 
  *	Otherwise, the return value is the return value
  *	of the last notifier function called.
  */
- 
+
 int notifier_call_chain(struct notifier_block **n, unsigned long val, void *v)
 {
 	int ret=NOTIFY_DONE;
@@ -147,7 +147,7 @@ int notifier_call_chain(struct notifier_block **n, unsigned long val, void *v)
  *	Currently always returns zero, as notifier_chain_register
  *	always returns zero.
  */
- 
+
 int register_reboot_notifier(struct notifier_block * nb)
 {
 	return notifier_chain_register(&reboot_notifier_list, nb);
@@ -162,7 +162,7 @@ int register_reboot_notifier(struct notifier_block * nb)
  *
  *	Returns zero on success, or %-ENOENT on failure.
  */
- 
+
 int unregister_reboot_notifier(struct notifier_block * nb)
 {
 	return notifier_chain_unregister(&reboot_notifier_list, nb);
@@ -212,10 +212,12 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 
 	read_lock(&tasklist_lock);
 	for_each_task(p) {
-		//hw_2
-		if( p->policy == SCHED_SHORT)
-			continue;
-		//end hw_2
+		/* HW2 */
+		if (p->policy == SCHED_SHORT) {
+         error = -EPERM;
+         continue;
+      }
+		/* HW2 end */
 		if (!proc_sel(p, which, who))
 			continue;
 		if (p->uid != current->euid &&
@@ -332,7 +334,7 @@ asmlinkage long sys_reboot(int magic1, int magic2, unsigned int cmd, void * arg)
 	case LINUX_REBOOT_CMD_SW_SUSPEND:
 		if(!software_suspend_enabled)
 			return -EAGAIN;
-		
+
 		software_suspend();
 		do_exit(0);
 		break;
@@ -368,7 +370,7 @@ void ctrl_alt_del(void)
 	else
 		kill_proc(cad_pid, SIGINT, 1);
 }
-	
+
 
 /*
  * Unprivileged users may change the real gid to the effective gid
@@ -383,7 +385,7 @@ void ctrl_alt_del(void)
  *
  * The general idea is that a program which uses just setregid() will be
  * 100% compatible with BSD.  A program which uses just setgid() will be
- * 100% compatible with POSIX with saved IDs. 
+ * 100% compatible with POSIX with saved IDs.
  *
  * SMP: There are not races, the GIDs are checked only by filesystem
  *      operations (as far as semantic preservation is concerned).
@@ -428,7 +430,7 @@ asmlinkage long sys_setregid(gid_t rgid, gid_t egid)
 }
 
 /*
- * setgid() is implemented like SysV w/ SAVED_IDS 
+ * setgid() is implemented like SysV w/ SAVED_IDS
  *
  * SMP: Same implicit races as above.
  */
@@ -458,8 +460,8 @@ asmlinkage long sys_setgid(gid_t gid)
 		return -EPERM;
 	return 0;
 }
-  
-/* 
+
+/*
  * cap_emulate_setxuid() fixes the effective / permitted capabilities of
  * a process after a call to setuid, setreuid, or setresuid.
  *
@@ -473,10 +475,10 @@ asmlinkage long sys_setgid(gid_t gid)
  *  3) When set*uiding _from_ euid != 0 _to_ euid == 0, the effective
  *  capabilities are set to the permitted capabilities.
  *
- *  fsuid is handled elsewhere. fsuid == 0 and {r,e,s}uid!= 0 should 
+ *  fsuid is handled elsewhere. fsuid == 0 and {r,e,s}uid!= 0 should
  *  never happen.
  *
- *  -astor 
+ *  -astor
  *
  * cevans - New behaviour, Oct '99
  * A process may, via prctl(), elect to keep its capabilities when it
@@ -488,7 +490,7 @@ asmlinkage long sys_setgid(gid_t gid)
  * files..
  * Thanks to Olaf Kirch and Peter Benie for spotting this.
  */
-static inline void cap_emulate_setxuid(int old_ruid, int old_euid, 
+static inline void cap_emulate_setxuid(int old_ruid, int old_euid,
 				       int old_suid)
 {
 	if ((old_ruid == 0 || old_euid == 0 || old_suid == 0) &&
@@ -545,7 +547,7 @@ int set_user(uid_t new_ruid, int dumpclear)
  *
  * The general idea is that a program which uses just setreuid() will be
  * 100% compatible with BSD.  A program which uses just setuid() will be
- * 100% compatible with POSIX with saved IDs. 
+ * 100% compatible with POSIX with saved IDs.
  */
 asmlinkage long sys_setreuid(uid_t ruid, uid_t euid)
 {
@@ -594,17 +596,17 @@ asmlinkage long sys_setreuid(uid_t ruid, uid_t euid)
 }
 
 
-		
+
 /*
- * setuid() is implemented like SysV with SAVED_IDS 
- * 
+ * setuid() is implemented like SysV with SAVED_IDS
+ *
  * Note that SAVED_ID's is deficient in that a setuid root program
- * like sendmail, for example, cannot set its uid to be a normal 
+ * like sendmail, for example, cannot set its uid to be a normal
  * user and then switch back, because if you're root, setuid() sets
  * the saved uid too.  If you don't like this, blame the bright people
  * in the POSIX committee and/or USG.  Note that the BSD-style setreuid()
  * will allow a root program to temporarily drop privileges and be able to
- * regain them by swapping the real and effective uid.  
+ * regain them by swapping the real and effective uid.
  */
 asmlinkage long sys_setuid(uid_t uid)
 {
@@ -614,7 +616,7 @@ asmlinkage long sys_setuid(uid_t uid)
 	old_ruid = new_ruid = current->uid;
 	old_suid = current->suid;
 	new_suid = old_suid;
-	
+
 	if (capable(CAP_SETUID)) {
 		if (uid != old_ruid && set_user(uid, old_euid != uid) < 0)
 			return -EAGAIN;
@@ -749,7 +751,7 @@ asmlinkage long sys_setfsuid(uid_t uid)
 
 	old_fsuid = current->fsuid;
 	if (uid == current->uid || uid == current->euid ||
-	    uid == current->suid || uid == current->fsuid || 
+	    uid == current->suid || uid == current->fsuid ||
 	    capable(CAP_SETUID))
 	{
 		if (uid != old_fsuid)
@@ -763,12 +765,12 @@ asmlinkage long sys_setfsuid(uid_t uid)
 	/* We emulate fsuid by essentially doing a scaled-down version
 	 * of what we did in setresuid and friends. However, we only
 	 * operate on the fs-specific bits of the process' effective
-	 * capabilities 
+	 * capabilities
 	 *
 	 * FIXME - is fsuser used for all CAP_FS_MASK capabilities?
 	 *          if not, we might be a bit too harsh here.
 	 */
-	
+
 	if (!issecure(SECURE_NO_SETUID_FIXUP)) {
 		if (old_fsuid == 0 && current->fsuid != 0) {
 			cap_t(current->cap_effective) &= ~CAP_FS_MASK;
@@ -783,7 +785,7 @@ asmlinkage long sys_setfsuid(uid_t uid)
 }
 
 /*
- * Samma på svenska..
+ * Samma pï¿½ svenska..
  */
 asmlinkage long sys_setfsgid(gid_t gid)
 {
@@ -791,7 +793,7 @@ asmlinkage long sys_setfsgid(gid_t gid)
 
 	old_fsgid = current->fsgid;
 	if (gid == current->gid || gid == current->egid ||
-	    gid == current->sgid || gid == current->fsgid || 
+	    gid == current->sgid || gid == current->fsgid ||
 	    capable(CAP_SETGID))
 	{
 		if (gid != old_fsgid)
@@ -962,7 +964,7 @@ out:
 asmlinkage long sys_getgroups(int gidsetsize, gid_t *grouplist)
 {
 	int i;
-	
+
 	/*
 	 *	SMP: Nobody else can change our grouplist. Thus we are
 	 *	safe.
@@ -984,7 +986,7 @@ asmlinkage long sys_getgroups(int gidsetsize, gid_t *grouplist)
  *	SMP: Our groups are not shared. We can copy to/from them safely
  *	without another task interfering.
  */
- 
+
 asmlinkage long sys_setgroups(int gidsetsize, gid_t *grouplist)
 {
 	if (!capable(CAP_SETGID))
@@ -1112,12 +1114,12 @@ asmlinkage long sys_getrlimit(unsigned int resource, struct rlimit *rlim)
 			? -EFAULT : 0;
 }
 
-#if !defined(__ia64__) 
+#if !defined(__ia64__)
 
 /*
  *	Back compatibility for getrlimit. Needed for some apps.
  */
- 
+
 asmlinkage long sys_old_getrlimit(unsigned int resource, struct rlimit *rlim)
 {
 	struct rlimit x;
@@ -1227,7 +1229,7 @@ asmlinkage long sys_umask(int mask)
 	mask = xchg(&current->fs->umask, mask & S_IRWXUGO);
 	return mask;
 }
-    
+
 asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
 			  unsigned long arg4, unsigned long arg5)
 {

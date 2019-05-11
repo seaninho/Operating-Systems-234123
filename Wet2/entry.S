@@ -649,10 +649,12 @@ ENTRY(sys_call_table)
 	.long SYMBOL_NAME(sys_ni_syscall)	/* 240 reserved for futex */
 	.long SYMBOL_NAME(sys_sched_setaffinity)
 	.long SYMBOL_NAME(sys_sched_getaffinity)
-	
-	.long SYMBOL_NAME(sys_is_short) /* 243 hw_2 */
-	.long SYMBOL_NAME(sys_short_remaining_time) /* 244 hw_2 */
-	.long SYMBOL_NAME(sys_short_place_in_queue) /* 245 hw_2 */
+
+   /* HW2 */
+	.long SYMBOL_NAME(sys_is_short)             /* System Call no.243 */
+	.long SYMBOL_NAME(sys_short_remaining_time) /* System Call no.244 */
+	.long SYMBOL_NAME(sys_short_place_in_queue) /* System Call no.245 */
+   /* HW2 end */
 
 	.rept NR_syscalls-(.-sys_call_table)/4
 		.long SYMBOL_NAME(sys_ni_syscall)

@@ -119,12 +119,15 @@ extern unsigned long nr_uninterruptible(void);
 #define SCHED_OTHER		0
 #define SCHED_FIFO		1
 #define SCHED_RR		2
+/* HW2 */
 #define SCHED_SHORT     5
-
+/* HW2 end */
 struct sched_param {
 	int sched_priority; //ignored for SHORT processes
+	/* HW2 */
 	int requested_time; //between 1 and 3000
 	int sched_short_prio; //between 0 and 139
+	/* HW2 end */
 };
 
 struct completion;
@@ -372,9 +375,9 @@ struct task_struct {
 	pid_t tgid;
 	/* boolean value for session group leader */
 	int leader;
-	/* 
+	/*
 	 * pointers to (original) parent process, youngest child, younger sibling,
-	 * older sibling, respectively.  (p->father can be replaced with 
+	 * older sibling, respectively.  (p->father can be replaced with
 	 * p->p_pptr->pid)
 	 */
 	task_t *p_opptr, *p_pptr, *p_cptr, *p_ysptr, *p_osptr;
@@ -445,7 +448,7 @@ struct task_struct {
 	void (*tux_exit)(void);
 
 	unsigned long cpus_allowed_mask;
-	
+
 /* Thread group tracking */
    	u32 parent_exec_id;
    	u32 self_exec_id;
@@ -454,10 +457,11 @@ struct task_struct {
 
 /* journalling filesystem info */
 	void *journal_info;
-	
-	int old_static_prio ; //hw_2
-	int requested_time ; //hw_2
 
+	/* HW2 */
+	int old_static_prio ;
+	int requested_time ;
+	/* HW2 end */
 };
 
 /*
@@ -624,7 +628,7 @@ extern void free_uid(struct user_struct *);
  * The 64-bit value is not volatile - you MUST NOT read it
  * without holding read_lock_irq(&xtime_lock)
  */
-extern u64 jiffies_64; 
+extern u64 jiffies_64;
 extern unsigned long volatile jiffies;
 extern unsigned long itimer_ticks;
 extern unsigned long itimer_next;
@@ -762,12 +766,12 @@ extern void free_irq(unsigned int, void *);
  * fsuser(). This is done, along with moving fsuser() checks to be
  * last.
  *
- * These will be removed, but in the mean time, when the SECURE_NOROOT 
+ * These will be removed, but in the mean time, when the SECURE_NOROOT
  * flag is set, uids don't grant privilege.
  */
 static inline int suser(void)
 {
-	if (!issecure(SECURE_NOROOT) && current->euid == 0) { 
+	if (!issecure(SECURE_NOROOT) && current->euid == 0) {
 		current->flags |= PF_SUPERPRIV;
 		return 1;
 	}
@@ -784,7 +788,7 @@ static inline int fsuser(void)
 }
 
 /*
- * capable() checks for a particular capability.  
+ * capable() checks for a particular capability.
  * New privilege checks should use this interface, rather than suser() or
  * fsuser(). See include/linux/capability.h for defined capabilities.
  */
@@ -900,7 +904,7 @@ do {									\
 	current->state = TASK_RUNNING;					\
 	remove_wait_queue(&wq, &__wait);				\
 } while (0)
-	
+
 #define wait_event_interruptible(wq, condition)				\
 ({									\
 	int __ret = 0;							\

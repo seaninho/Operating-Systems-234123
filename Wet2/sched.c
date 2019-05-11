@@ -126,8 +126,9 @@ struct prio_array {
 	list_t queue[MAX_PRIO];
 };
 
-//hw_2
+/* HW2 */
 int bitmap_short[MAX_PRIO] = {0};
+/* HW2 end */
 
 /*
  * This is the main, per-CPU runqueue data structure.
@@ -153,7 +154,8 @@ static struct runqueue runqueues[NR_CPUS] __cacheline_aligned;
 #define this_rq()		cpu_rq(smp_processor_id())
 #define task_rq(p)		cpu_rq((p)->cpu)
 #define cpu_curr(cpu)		(cpu_rq(cpu)->curr)
-#define rt_task(p)		((p)->prio < MAX_RT_PRIO) || ((p)->policy == SCHED_SHORT)
+/* HW2 */
+#define rt_task(p)		((p)->policy != SCHED_SHORT ? (p)->prio < MAX_RT_PRIO : 0)
 
 /*
  * Default context-switch locking:
@@ -217,44 +219,44 @@ static inline void dequeue_task(struct task_struct *p, prio_array_t *array)
 {
 	array->nr_active--;
 	list_del(&p->run_list);
-	if (list_empty(array->queue + p->prio)){
+	if (list_empty(array->queue + p->prio)) {
 		__clear_bit(p->prio, array->bitmap);
-		// hw_2
-		if( p->policy == SCHED_SHORT ){
-			bitmap_short[p->prio] -- ;
+		/* HW2 */
+		if (p->policy == SCHED_SHORT) {
+			bitmap_short[p->prio]--;
 		}
-		// end hw_2
+		/* HW2 end */
 	}
-		
+
 }
 
 static inline void enqueue_task(struct task_struct *p, prio_array_t *array)
 {
-	// hw_2
-	if( p->policy != SCHED_SHORT ||  p->prio <= 99 ){
+	/* HW2 */
+	if (p->policy != SCHED_SHORT || p->prio <= 99) {
 		list_add_tail(&p->run_list, array->queue + p->prio);
 		__set_bit(p->prio, array->bitmap);
-		if(p->policy == SCHED_SHORT)
-			bitmap_short[p->prio] ++ ;
+		if (p->policy == SCHED_SHORT)
+			bitmap_short[p->prio]++;
 	}
 	else {
-		if (list_empty(array->queue + p->prio)){
+		if (list_empty(array->queue + p->prio)) {
 			list_add_tail(&p->run_list, array->queue + p->prio);
 		}
-		else{
-			struct list_head* pos ,*n;
-			task_t* cur;
-			list_for_each_safe(pos,n, array->queue + p->prio){
-				cur = list_entry(pos,task_t,run_list);
-				if(cur->policy != SCHED_SHORT){
-					list_add_tail(&p->run_list, cur);
+		else {
+			struct list_head *pos ,*n;
+			task_t *curr;
+			list_for_each_safe(pos, n, array->queue + p->prio) {
+				curr = list_entry(pos, task_t,run_list);
+				if (curr->policy != SCHED_SHORT) {
+					list_add_tail(&p->run_list, pos);
 					break;
 				}
 			}
 		}
-		bitmap_short[p->prio] ++ ;
+		bitmap_short[p->prio]++;
 	}
-	// end hw_2
+	/* HW2 end */
 
 	array->nr_active++;
 	p->array = array;
@@ -275,12 +277,12 @@ static inline int effective_prio(task_t *p)
 	 *
 	 * Both properties are important to certain workloads.
 	 */
-	 
-	 //hw_2
-	if(p->policy == SCHED_SHORT)
-		return p->prio ;
-	//end hw_2
-	
+
+	/* HW2 */
+	if (p->policy == SCHED_SHORT)
+		return p->prio;
+	/* HW2 end */
+
 	bonus = MAX_USER_PRIO*PRIO_BONUS_RATIO*p->sleep_avg/MAX_SLEEP_AVG/100 -
 			MAX_USER_PRIO*PRIO_BONUS_RATIO/100/2;
 
@@ -465,7 +467,7 @@ void sched_exit(task_t * p)
 {
 	__cli();
 	if (p->first_time_slice) {
-		if( p->policy != SCHED_SHORT) //hw_2
+		if (p->policy != SCHED_SHORT) /* HW2 */
 			current->time_slice += p->time_slice;
 		if (unlikely(current->time_slice > MAX_TIMESLICE))
 			current->time_slice = MAX_TIMESLICE;
@@ -799,12 +801,12 @@ void scheduler_tick(int user_tick, int system)
 			dequeue_task(p, rq->active);
 			enqueue_task(p, rq->active);
 		}
-		//hw_2
+		/* HW2 */
 		if ((p->policy == SCHED_SHORT) && !--p->time_slice) {
-			p->policy = SCHED_OTHER ;
-			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO-1) ;
-			p->sleep_avg = 0.5*MAX_SLEEP_AVG ;
-			p->prio = effective_prio(p);	
+			p->policy = SCHED_OTHER;
+			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO-1);
+			p->sleep_avg = 0.5*MAX_SLEEP_AVG;
+			p->prio = effective_prio(p);
 			p->time_slice = TASK_TIMESLICE(p);
 			p->first_time_slice = 0;
 			set_tsk_need_resched(p);
@@ -812,7 +814,8 @@ void scheduler_tick(int user_tick, int system)
 			/* put it at the end of the queue: */
 			dequeue_task(p, rq->active);
 			enqueue_task(p, rq->active);
-		} //end hw_2
+		}
+		/* HW2 end */
 		goto out;
 	}
 	/*
@@ -909,24 +912,23 @@ pick_next_task:
 	}
 
 	idx = sched_find_first_bit(array->bitmap);
-	
-	//hw_2
-	int i = 0 ,firs_short = -1 ;
-	
-	//find first sort task
-	for(; i<MAX_PRIO ; i++ ){
-		if(bitmap_short[i] > 0 ){
-			firs_short = i;
-			break ;
-		}
 
+	/* HW2 */
+	int i = 0 ,first_short = -1;
+
+	//find first short task
+	for (; i<MAX_PRIO; i++) {
+		if (bitmap_short[i] > 0) {
+			first_short = i;
+			break;
+		}
 	}
-	
-	if( firs_short <= idx && idx > 99 && firs_short> 99)
-		idx = firs_short;
-	
-	//end hw_2
-	
+
+	if (first_short <= idx && idx > 99 && first_short> 99)
+		idx = first_short;
+
+	/* HW2 end */
+
 	queue = array->queue + idx;
 	next = list_entry(queue->next, task_t, run_list);
 
@@ -937,7 +939,7 @@ switch_tasks:
 	if (likely(prev != next)) {
 		rq->nr_switches++;
 		rq->curr = next;
-	
+
 		prepare_arch_switch(rq);
 		prev = context_switch(prev, next);
 		barrier();
@@ -1008,7 +1010,7 @@ void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr_exclusive)
 }
 
 #endif
- 
+
 void complete(struct completion *x)
 {
 	unsigned long flags;
@@ -1081,7 +1083,7 @@ long interruptible_sleep_on_timeout(wait_queue_head_t *q, long timeout)
 void sleep_on(wait_queue_head_t *q)
 {
 	SLEEP_ON_VAR
-	
+
 	current->state = TASK_UNINTERRUPTIBLE;
 
 	SLEEP_ON_HEAD
@@ -1092,7 +1094,7 @@ void sleep_on(wait_queue_head_t *q)
 long sleep_on_timeout(wait_queue_head_t *q, long timeout)
 {
 	SLEEP_ON_VAR
-	
+
 	current->state = TASK_UNINTERRUPTIBLE;
 
 	SLEEP_ON_HEAD
@@ -1112,12 +1114,12 @@ void set_user_nice(task_t *p, long nice)
 
 	if (TASK_NICE(p) == nice || nice < -20 || nice > 19)
 		return;
-	
-	//hw_2
-	if( p->policy == SCHED_SHORT )
+
+	/* HW2 */
+	if (p->policy == SCHED_SHORT)
 		return;
-	//end hw_2
-	
+	/* HW2 end */
+
 	/*
 	 * We have to be careful, if called from sys_setpriority(),
 	 * the task might be in the middle of scheduling on another CPU.
@@ -1162,12 +1164,12 @@ asmlinkage long sys_nice(int increment)
 	 *	We don't have to worry. Conceptually one call occurs first
 	 *	and we have a single winner.
 	 */
-	 
-	//hw_2
-	if( current->policy == SCHED_SHORT )
+
+	/* HW2 */
+	if (current->policy == SCHED_SHORT)
 		return -EPERM;
-	//end hw_2
-	 
+	/* HW2 end */
+
 	if (increment < 0) {
 		if (!capable(CAP_SYS_NICE))
 			return -EPERM;
@@ -1196,7 +1198,12 @@ asmlinkage long sys_nice(int increment)
  */
 int task_prio(task_t *p)
 {
-	return p->prio - MAX_USER_RT_PRIO;
+	/* HW2 */
+	if (p->policy == SCHED_SHORT)
+		return p->prio;
+	else
+	/* HW2 end */
+		return p->prio - MAX_USER_RT_PRIO;
 }
 
 int task_nice(task_t *p)
@@ -1252,7 +1259,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	else {
 		retval = -EINVAL;
 		if (policy != SCHED_FIFO && policy != SCHED_RR &&
-				policy != SCHED_OTHER && policy != SCHED_SHORT) // hw_2
+				policy != SCHED_OTHER && policy != SCHED_SHORT) /* HW2 */
 			goto out_unlock;
 	}
 
@@ -1261,9 +1268,11 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 * 1..MAX_USER_RT_PRIO-1, valid priority for SCHED_OTHER is 0.
 	 */
 	retval = -EINVAL;
-	if (  policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1) )
+	/* HW2 */
+	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1))
 		goto out_unlock;
-	if ((policy == SCHED_OTHER) != (lp.sched_priority == 0))
+	/* HW2 */
+	if (policy != SCHED_SHORT && ((policy == SCHED_OTHER) != (lp.sched_priority == 0)))
 		goto out_unlock;
 
 	retval = -EPERM;
@@ -1273,43 +1282,42 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	if ((current->euid != p->euid) && (current->euid != p->uid) &&
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
-	//hw_2
-	if( ( policy == SCHED_SHORT && p->policy != SCHED_OTHER ) || p->policy == SCHED_SHORT ){
+	/* HW2 */
+	if ((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || p->policy == SCHED_SHORT) {
 		printk("here 1\n");
 		goto out_unlock;
 	}
 
-	
+
 	retval = -EINVAL;
-	if( policy == SCHED_SHORT && (lp.requested_time<1 || lp.requested_time>3000 ||
-								  lp.sched_short_prio < 0 || lp.sched_short_prio > 139 ) ){
+	if (policy == SCHED_SHORT && (lp.requested_time < 1 || lp.requested_time > 3000 ||
+								  lp.sched_short_prio < 0 || lp.sched_short_prio > 139)) {
 		printk("here 2\n");
 		goto out_unlock;
 	}
-	//end hw_2
+	/* HW2 end */
 
 	array = p->array;
 	if (array)
 		deactivate_task(p, task_rq(p));
 	retval = 0;
 	p->policy = policy;
-	
-	//hw_2
-	if( policy != SCHED_SHORT ){
+
+	/* HW2 */
+	if (policy != SCHED_SHORT) {
 		p->rt_priority = lp.sched_priority;
 		if (policy != SCHED_OTHER)
 			p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
 		else
-			p->prio = p->static_prio;	
+			p->prio = p->static_prio;
 	}
-	else{
-		p->old_static_prio = p->static_prio ;
-		p->requested_time = lp.requested_time ;
-		p->prio = lp.sched_short_prio ;
+	else {
+		p->old_static_prio = p->static_prio;
+		p->requested_time = lp.requested_time;
+		p->prio = lp.sched_short_prio;
 		p->time_slice = lp.requested_time*HZ/1000;
 	}
-
-	//end hw_2
+	/* HW2 end */
 
 	if (array)
 		activate_task(p, task_rq(p));
@@ -1367,14 +1375,15 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock;
-	if( p->policy != SCHED_SHORT )
+	/* HW2 */
+	if (p->policy != SCHED_SHORT)
 		lp.sched_priority = p->rt_priority;
-	else{
+	else {
 		lp.sched_short_prio = p->prio;
 		lp.requested_time = p->requested_time;
 	}
+	/* HW2 end */
 	read_unlock(&tasklist_lock);
-
 	/*
 	 * This one might sleep, we cannot do it with a spinlock held ...
 	 */
@@ -1494,22 +1503,22 @@ asmlinkage long sys_sched_yield(void)
 
 	if (unlikely(rt_task(current))) {
 		list_del(&current->run_list);
-		//hw_2
-		if(current->policy != SCHED_SHORT){
+		/* HW2 */
+		if (current->policy != SCHED_SHORT) {
 			list_add_tail(&current->run_list, array->queue + current->prio);
 		}
-		else{
-			struct list_head* pos ,*n;
-			task_t* cur;
-			list_for_each_safe(pos,n, array->queue + current->prio){
-				cur = list_entry(pos,task_t,run_list);
-				if(cur->policy != SCHED_SHORT){
-					list_add_tail(&current->run_list, cur);
+		else {
+			struct list_head *pos ,*n;
+			task_t *curr;
+			list_for_each_safe(pos, n, array->queue + current->prio) {
+				curr = list_entry(pos, task_t, run_list);
+				if (curr->policy != SCHED_SHORT) {
+					list_add_tail(&current->run_list, pos);
 					break;
 				}
 			}
 		}
-		//end hw_2
+		/* HW2 end */
 		goto out_unlock;
 	}
 
@@ -1529,7 +1538,7 @@ asmlinkage long sys_sched_yield(void)
 
 	list_add(&current->run_list, array->queue[i].next);
 	__set_bit(i, array->bitmap);
-	
+
 
 out_unlock:
 	spin_unlock(&rq->lock);
@@ -2042,69 +2051,67 @@ int ll_copy_from_user(void *to, const void *from_user, unsigned long len)
 
 
 
-/////////////////////////////hw2/////////////////////////////
+/////////////////////////////HW2/////////////////////////////
 
-int sys_is_short(pid_t pid){
-	
+int sys_is_short(pid_t pid) {
+
 	//validate pid
-	if( pid < 0 )
+	if (pid < 0)
 		return -ESRCH;
-	
+
 	task_t* p = find_task_by_pid(pid);
-	if(!p)
+	if (!p)
 		return -ESRCH;
-	
-	return p->policy == SCHED_SHORT ;
+
+	return p->policy == SCHED_SHORT;
 }
 
-int sys_short_remaining_time(pid_t pid){
-	
+int sys_short_remaining_time(pid_t pid) {
+
 	//validate pid
-	if( pid < 0 )
+	if (pid < 0)
 		return -ESRCH;
-	
+
 	task_t* p = find_task_by_pid(pid);
-	if(!p)
+	if (!p)
 		return -ESRCH;
-	
-	if( p->policy != SCHED_SHORT)
+
+	if (p->policy != SCHED_SHORT)
 		return -EINVAL;
-	
-	return  p->time_slice*1000/HZ ;
+
+	return p->time_slice*1000/HZ;
 }
 
-int sys_short_place_in_queue(pid_t pid){
-	
+int sys_short_place_in_queue(pid_t pid) {
+
 	//validate pid
-	if( pid < 0 )
+	if (pid < 0)
 		return -ESRCH;
-	
+
 	task_t* p = find_task_by_pid(pid);
-	if(!p)
+	if (!p)
 		return -ESRCH;
-	
-	if( p->policy != SCHED_SHORT)
+
+	if (p->policy != SCHED_SHORT)
 		return -EINVAL;
-	
-	int prio = p->prio , i = 0 , total=  0 ;
-	for( ; i < prio ; i++ )
+
+	int prio = p->prio , i = 0 , total = 0;
+	for (; i < prio; i++)
 		total += bitmap_short[i];
-	
-	struct list_head* pos ,*n;
+
+	struct list_head *pos ,*n;
 	runqueue_t *rq;
 	rq = task_rq(p);
 	prio_array_t *array = rq->active;
-	task_t* cur;
-	list_for_each_safe(pos,n, array->queue + prio){
-		cur = list_entry(pos,task_t,run_list);
-		if(cur->pid == pid)
+	task_t *curr;
+	list_for_each_safe(pos, n, array->queue + prio) {
+		curr = list_entry(pos, task_t, run_list);
+		if (curr->pid == pid)
 			break;
-		if(cur->policy == SCHED_SHORT)
-			total++ ;
+		if (curr->policy == SCHED_SHORT)
+			total++;
 	}
-	
-	return total ;
-	
+	return total;
 }
 
 /////////////////////////////end hw2/////////////////////////////
@@ -2122,8 +2129,3 @@ struct low_latency_enable_struct __enable_lowlatency = { 0, };
 #endif
 
 #endif	/* LOWLATENCY_NEEDED */
-
-
-
-
-
