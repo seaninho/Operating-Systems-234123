@@ -126,10 +126,6 @@ struct prio_array {
 	list_t queue[MAX_PRIO];
 };
 
-/* HW2 */
-int bitmap_short[MAX_PRIO] = {0};
-/* HW2 end */
-
 /*
  * This is the main, per-CPU runqueue data structure.
  *
@@ -142,7 +138,7 @@ struct runqueue {
 	unsigned long nr_running, nr_switches, expired_timestamp;
 	signed long nr_uninterruptible;
 	task_t *curr, *idle;
-	prio_array_t *active, *expired, arrays[2];
+	prio_array_t *active, *expired, *active_short, arrays[3];	/* HW2 */
 	int prev_nr_running[NR_CPUS];
 	task_t *migration_thread;
 	list_t migration_queue;
@@ -221,43 +217,14 @@ static inline void dequeue_task(struct task_struct *p, prio_array_t *array)
 	list_del(&p->run_list);
 	if (list_empty(array->queue + p->prio)) {
 		__clear_bit(p->prio, array->bitmap);
-		/* HW2 */
-		if (p->policy == SCHED_SHORT) {
-			bitmap_short[p->prio]--;
-		}
-		/* HW2 end */
 	}
 
 }
 
 static inline void enqueue_task(struct task_struct *p, prio_array_t *array)
 {
-	/* HW2 */
-	if (p->policy != SCHED_SHORT || p->prio <= 99) {
-		list_add_tail(&p->run_list, array->queue + p->prio);
-		__set_bit(p->prio, array->bitmap);
-		if (p->policy == SCHED_SHORT)
-			bitmap_short[p->prio]++;
-	}
-	else {
-		if (list_empty(array->queue + p->prio)) {
-			list_add_tail(&p->run_list, array->queue + p->prio);
-		}
-		else {
-			struct list_head *pos ,*n;
-			task_t *curr;
-			list_for_each_safe(pos, n, array->queue + p->prio) {
-				curr = list_entry(pos, task_t,run_list);
-				if (curr->policy != SCHED_SHORT) {
-					list_add_tail(&p->run_list, pos);
-					break;
-				}
-			}
-		}
-		bitmap_short[p->prio]++;
-	}
-	/* HW2 end */
-
+	list_add_tail(&p->run_list, array->queue + p->prio);
+	__set_bit(p->prio, array->bitmap);
 	array->nr_active++;
 	p->array = array;
 }
@@ -298,6 +265,12 @@ static inline void activate_task(task_t *p, runqueue_t *rq)
 {
 	unsigned long sleep_time = jiffies - p->sleep_timestamp;
 	prio_array_t *array = rq->active;
+	/* HW2 */
+	if (p->policy == SCHED_SHORT) {
+		array = rq->active_short;
+		goto out_enqueue_task;
+	}
+	/* HW2 end */
 
 	if (!rt_task(p) && sleep_time) {
 		/*
@@ -312,6 +285,8 @@ static inline void activate_task(task_t *p, runqueue_t *rq)
 			p->sleep_avg = MAX_SLEEP_AVG;
 		p->prio = effective_prio(p);
 	}
+/* HW2 */
+out_enqueue_task:
 	enqueue_task(p, array);
 	rq->nr_running++;
 }
@@ -418,7 +393,8 @@ repeat_lock_task:
 		/*
 		 * If sync is set, a resched_task() is a NOOP
 		 */
-		if (p->prio < rq->curr->prio)
+		/* HW2 */
+		if (p->prio < rq->curr->prio && p->policy != SCHED_SHORT)
 			resched_task(rq->curr);
 		success = 1;
 	}
@@ -782,7 +758,8 @@ void scheduler_tick(int user_tick, int system)
 	kstat.per_cpu_system[cpu] += system;
 
 	/* Task might have expired already, but not scheduled off yet */
-	if (p->array != rq->active) {
+	/* HW2 */
+	if (p->array != rq->active || p->array != rq->active_short) {
 		set_tsk_need_resched(p);
 		return;
 	}
@@ -801,23 +778,25 @@ void scheduler_tick(int user_tick, int system)
 			dequeue_task(p, rq->active);
 			enqueue_task(p, rq->active);
 		}
-		/* HW2 */
-		if ((p->policy == SCHED_SHORT) && !--p->time_slice) {
-			p->policy = SCHED_OTHER;
-			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO-1);
-			p->sleep_avg = 0.5*MAX_SLEEP_AVG;
-			p->prio = effective_prio(p);
-			p->time_slice = TASK_TIMESLICE(p);
-			p->first_time_slice = 0;
-			set_tsk_need_resched(p);
-
-			/* put it at the end of the queue: */
-			dequeue_task(p, rq->active);
-			enqueue_task(p, rq->active);
-		}
-		/* HW2 end */
 		goto out;
 	}
+
+	/* HW2 */
+	if ((p->policy == SCHED_SHORT) && !--p->time_slice) {
+		p->policy = SCHED_OTHER;
+		p->static_prio = min(p->old_static_prio + 7,MAX_PRIO - 1);
+		p->sleep_avg = 0.5 * MAX_SLEEP_AVG;
+		p->prio = effective_prio(p);
+		p->time_slice = TASK_TIMESLICE(p);
+		p->first_time_slice = 0;
+		set_tsk_need_resched(p);
+
+		/* process goes back to SCHED_OTHER policy */
+		dequeue_task(p, rq->active_short);
+		enqueue_task(p, rq->active);
+	}
+	/* HW2 end */
+
 	/*
 	 * The task was running during this tick - update the
 	 * time slice counter and the sleep average. Note: we
@@ -862,6 +841,7 @@ asmlinkage void schedule(void)
 	prio_array_t *array;
 	list_t *queue;
 	int idx;
+	int active_short_is_empty = 0;
 
 	if (unlikely(in_interrupt()))
 		BUG();
@@ -914,19 +894,10 @@ pick_next_task:
 	idx = sched_find_first_bit(array->bitmap);
 
 	/* HW2 */
-	int i = 0 ,first_short = -1;
-
-	//find first short task
-	for (; i<MAX_PRIO; i++) {
-		if (bitmap_short[i] > 0) {
-			first_short = i;
-			break;
-		}
+	if (idx > 99 && rq->active_short->nr_active) {
+		array = rq->active_short;
+		idx = sched_find_first_bit(array->bitmap);
 	}
-
-	if (first_short <= idx && idx > 99 && first_short> 99)
-		idx = first_short;
-
 	/* HW2 end */
 
 	queue = array->queue + idx;
@@ -1282,19 +1253,15 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	if ((current->euid != p->euid) && (current->euid != p->uid) &&
 	    !capable(CAP_SYS_NICE))
 		goto out_unlock;
-	/* HW2 */
-	if ((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || p->policy == SCHED_SHORT) {
-		printk("here 1\n");
-		goto out_unlock;
-	}
 
+	/* HW2 */
+	if ((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || p->policy == SCHED_SHORT)
+		goto out_unlock;
 
 	retval = -EINVAL;
 	if (policy == SCHED_SHORT && (lp.requested_time < 1 || lp.requested_time > 3000 ||
-								  lp.sched_short_prio < 0 || lp.sched_short_prio > 139)) {
-		printk("here 2\n");
+								  			lp.sched_short_prio < 0 || lp.sched_short_prio > 139))
 		goto out_unlock;
-	}
 	/* HW2 end */
 
 	array = p->array;
@@ -1316,6 +1283,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		p->requested_time = lp.requested_time;
 		p->prio = lp.sched_short_prio;
 		p->time_slice = lp.requested_time*HZ/1000;
+		set_tsk_need_resched(p);
 	}
 	/* HW2 end */
 
@@ -1501,24 +1469,10 @@ asmlinkage long sys_sched_yield(void)
 	prio_array_t *array = current->array;
 	int i;
 
-	if (unlikely(rt_task(current))) {
+	/* HW2 */
+	if (unlikely(rt_task(current)) || current->policy == SCHED_SHORT) {
 		list_del(&current->run_list);
-		/* HW2 */
-		if (current->policy != SCHED_SHORT) {
-			list_add_tail(&current->run_list, array->queue + current->prio);
-		}
-		else {
-			struct list_head *pos ,*n;
-			task_t *curr;
-			list_for_each_safe(pos, n, array->queue + current->prio) {
-				curr = list_entry(pos, task_t, run_list);
-				if (curr->policy != SCHED_SHORT) {
-					list_add_tail(&current->run_list, pos);
-					break;
-				}
-			}
-		}
-		/* HW2 end */
+		list_add_tail(&current->run_list, array->queue + current->prio);
 		goto out_unlock;
 	}
 
@@ -1765,10 +1719,14 @@ void __init sched_init(void)
 		rq = cpu_rq(i);
 		rq->active = rq->arrays;
 		rq->expired = rq->arrays + 1;
+		/* HW2 */
+		rq->active_short = rq->arrays + 2;
+		/* HW2 end */
 		spin_lock_init(&rq->lock);
 		INIT_LIST_HEAD(&rq->migration_queue);
 
-		for (j = 0; j < 2; j++) {
+		/* HW2 */
+		for (j = 0; j < 3; j++) {
 			array = rq->arrays + j;
 			for (k = 0; k < MAX_PRIO; k++) {
 				INIT_LIST_HEAD(array->queue + k);
@@ -2095,33 +2053,27 @@ int sys_short_place_in_queue(pid_t pid) {
 	if (p->policy != SCHED_SHORT)
 		return -EINVAL;
 
-	int prio = p->prio , i = 0 , total = 0;
-	for (; i < prio; i++)
-		total += bitmap_short[i];
-
 	struct list_head *pos ,*n;
-	runqueue_t *rq;
-	rq = task_rq(p);
-	prio_array_t *array = rq->active;
+	runqueue_t *rq = task_rq(p);
+	prio_array_t *array = rq->active_short;
 	task_t *curr;
-	list_for_each_safe(pos, n, array->queue + prio) {
-		curr = list_entry(pos, task_t, run_list);
-		if (curr->pid == pid)
-			break;
-		if (curr->policy == SCHED_SHORT)
+	int prio = p->prio , i = 0 , total = 0;
+
+	for (; i <= prio; i++) {
+		list_for_each_safe(pos, n, array->queue + i) {
+			curr = list_entry(pos, task_t, run_list);
+			if (i == prio) {
+				if (curr->pid == pid)
+					goto out_total;
+			}
 			total++;
+		}
 	}
+out_total:
 	return total;
 }
 
-/////////////////////////////end hw2/////////////////////////////
-
-
-
-
-
-
-
+/////////////////////////////HW2 end/////////////////////////////
 
 
 #ifdef CONFIG_LOLAT_SYSCTL
