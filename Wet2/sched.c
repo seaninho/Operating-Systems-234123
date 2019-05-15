@@ -794,6 +794,7 @@ void scheduler_tick(int user_tick, int system)
 		/* process goes back to SCHED_OTHER policy */
 		dequeue_task(p, rq->active_short);
 		enqueue_task(p, rq->active);
+		goto out;		
 	}
 	/* HW2 end */
 
@@ -1269,10 +1270,10 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		deactivate_task(p, task_rq(p));
 	retval = 0;
 	p->policy = policy;
+	p->rt_priority = lp.sched_priority;
 
 	/* HW2 */
 	if (policy != SCHED_SHORT) {
-		p->rt_priority = lp.sched_priority;
 		if (policy != SCHED_OTHER)
 			p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
 		else
@@ -1343,10 +1344,9 @@ asmlinkage long sys_sched_getparam(pid_t pid, struct sched_param *param)
 	retval = -ESRCH;
 	if (!p)
 		goto out_unlock;
+	lp.sched_priority = p->rt_priority;
 	/* HW2 */
-	if (p->policy != SCHED_SHORT)
-		lp.sched_priority = p->rt_priority;
-	else {
+	if (p->policy == SCHED_SHORT) {
 		lp.sched_short_prio = p->prio;
 		lp.requested_time = p->requested_time;
 	}

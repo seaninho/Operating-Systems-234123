@@ -212,12 +212,6 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 
 	read_lock(&tasklist_lock);
 	for_each_task(p) {
-		/* HW2 */
-		if (p->policy == SCHED_SHORT) {
-         error = -EPERM;
-         continue;
-      }
-		/* HW2 end */
 		if (!proc_sel(p, which, who))
 			continue;
 		if (p->uid != current->euid &&
@@ -225,6 +219,14 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 			error = -EPERM;
 			continue;
 		}
+		
+		/* HW2 */
+		if (p->policy == SCHED_SHORT) {
+			error = -EPERM;
+			continue;
+		}
+		/* HW2 end */
+
 		if (error == -ESRCH)
 			error = 0;
 		if (niceval < task_nice(p) && !capable(CAP_SYS_NICE))
