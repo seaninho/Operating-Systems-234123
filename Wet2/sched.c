@@ -759,7 +759,7 @@ void scheduler_tick(int user_tick, int system)
 
 	/* Task might have expired already, but not scheduled off yet */
 	/* HW2 */
-	if (p->array != rq->active || p->array != rq->active_short) {
+	if (p->array != rq->active && p->array != rq->active_short) {
 		set_tsk_need_resched(p);
 		return;
 	}
@@ -794,7 +794,7 @@ void scheduler_tick(int user_tick, int system)
 		/* process goes back to SCHED_OTHER policy */
 		dequeue_task(p, rq->active_short);
 		enqueue_task(p, rq->active);
-		goto out;		
+		goto out;
 	}
 	/* HW2 end */
 
@@ -842,7 +842,6 @@ asmlinkage void schedule(void)
 	prio_array_t *array;
 	list_t *queue;
 	int idx;
-	int active_short_is_empty = 0;
 
 	if (unlikely(in_interrupt()))
 		BUG();
