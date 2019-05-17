@@ -1,0 +1,741 @@
+Linux version 2.4.18-14custom (root@localhost.localdomain) (gcc version 3.2 20020903 (Red Hat Linux 8.0 3.2-7)) #19 Fri May 17 16:02:22 IDT 2019
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
+ BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000007fee0000 (usable)
+ BIOS-e820: 000000007fee0000 - 000000007feff000 (ACPI data)
+ BIOS-e820: 000000007feff000 - 000000007ff00000 (ACPI NVS)
+ BIOS-e820: 000000007ff00000 - 0000000080000000 (usable)
+ BIOS-e820: 00000000f0000000 - 00000000f8000000 (reserved)
+ BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+ BIOS-e820: 00000000fffe0000 - 0000000100000000 (reserved)
+1152MB HIGHMEM available.
+896MB LOWMEM available.
+On node 0 totalpages: 524288
+zone(0): 4096 pages.
+zone(1): 225280 pages.
+zone(2): 294912 pages.
+Kernel command line: ro root=LABEL=/ console=tty0 console=ttyS1
+Initializing CPU#0
+Detected 2590.630 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 5170.96 BogoMIPS
+Memory: 2060556k/2097152k available (1299k kernel code, 31856k reserved, 956k data, 172k init, 1179520k highmem)
+Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Inode cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Mount cache hash table entries: 32768 (order: 6, 262144 bytes)
+Buffer cache hash table entries: 131072 (order: 7, 524288 bytes)
+Page-cache hash table entries: 524288 (order: 9, 2097152 bytes)
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz stepping 03
+Enabling fast FPU save and restore... done.
+Enabling unmasked SIMD FPU exception support... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch@atnf.csiro.au)
+mtrr: detected mtrr type: Intel
+PCI: PCI BIOS revision 2.10 entry at 0xfd8a0, last bus=34
+PCI: Using configuration type 1
+PCI: Probing PCI hardware
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 1: assuming transparent
+Unknown bridge resource 2: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+PCI: Using IRQ router PIIX [8086/7110] at 00:07.0
+Limiting direct PCI/PCI transfers.
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+Initializing RT netlink socket
+apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16)
+Starting kswapd
+allocated 64 pages and 64 bhs reserved for the highmem bounces
+VFS: Diskquotas version dquot_6.5.0 initialized
+pty: 2048 Unix98 ptys configured
+Serial driver version 5.05c (2001-07-08) with MANY_PORTS MULTIPORT SHARE_IRQ SERIAL_PCI ISAPNP enabled
+ttyS0 at 0x03f8 (irq = 4) is a 16550A
+ttyS1 at 0x02f8 (irq = 3) is a 16550A
+Real Time Clock Driver v1.10e
+oprofile: mapping APIC.
+oprofile: no local P6 APIC. Falling back to RTC mode.
+Your CPU does not have a local APIC, e.g. mobile P6. Falling back to RTC mode.
+oprofile: can't get RTC I/O Ports
+block: 1024 slots per queue, batch=256
+Uniform Multi-Platform E-IDE driver Revision: 6.31
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+PIIX4: IDE controller on PCI bus 00 dev 39
+PIIX4: chipset revision 1
+PIIX4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0x10c0-0x10c7, BIOS settings: hda:pio, hdb:pio
+    ide1: BM-DMA at 0x10c8-0x10cf, BIOS settings: hdc:DMA, hdd:pio
+hdc: VMware Virtual IDE CDROM Drive, ATAPI CD/DVD-ROM drive
+ide1 at 0x170-0x177,0x376 on irq 15
+ide-floppy driver 0.99.newide
+Floppy drive(s): fd0 is 1.44M
+FDC 0 is a post-1991 82077
+NET4: Frame Diverter 0.46
+RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+ide-floppy driver 0.99.newide
+md: md driver 0.90.0 MAX_MD_DEVS=256, MD_SB_DISKS=27
+md: Autodetecting RAID arrays.
+md: autorun ...
+md: ... autorun DONE.
+NET4: Linux TCP/IP 1.0 for NET4.0
+IP Protocols: ICMP, UDP, TCP, IGMP
+IP: routing cache hash table of 16384 buckets, 128Kbytes
+TCP: Hash tables configured (established 262144 bind 65536)
+Linux IP multicast router 0.06 plus PIM-SM
+NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
+RAMDISK: Compressed image found at block 0
+Freeing initrd memory: 230k freed
+VFS: Mounted root (ext2 filesystem).
+Red Hat nash version 3.4.28 starting
+Loading scsi_mod module
+SCSI subsystem driver Revision: 1.00
+Loading sd_mod module
+kmod: failed to exec /sbin/modprobe -s -k scsi_hostadapter, errno = 2
+Loading BusLogic module
+PCI: Found IRQ 11 for device 00:10.0
+scsi: ***** BusLogic SCSI Driver Version 2.1.15 of 17 August 1998 *****
+scsi: Copyright 1995-1998 by Leonard N. Zubkoff <lnz@dandelion.com>
+scsi0: Configuring BusLogic Model BT-958 PCI Wide Ultra SCSI Host Adapter
+scsi0:   Firmware Version: 5.07B, I/O Address: 0x1060, IRQ Channel: 11/Level
+scsi0:   PCI Bus: 0, Device: 16, Address: 0xFEBFD000, Host Adapter SCSI ID: 7
+scsi0:   Parity Checking: Enabled, Extended Translation: Enabled
+scsi0:   Synchronous Negotiation: Ultra, Wide Negotiation: Enabled
+scsi0:   Disconnect/Reconnect: Enabled, Tagged Queuing: Enabled
+scsi0:   Scatter/Gather Limit: 128 of 8192 segments, Mailboxes: 211
+scsi0:   Driver Queue Depth: 211, Host Adapter Queue Depth: 192
+scsi0:   Tagged Queue Depth: Automatic, Untagged Queue Depth: 3
+scsi0:   Error Recovery Strategy: Default, SCSI Bus Reset: Enabled
+scsi0: *** BusLogic BT-958 Initialized Successfully ***
+scsi0 : BusLogic BT-958
+  Vendor: VMware,   Model: VMware Virtual S  Rev: 1.0 
+  Type:   Direct-Access                      ANSI SCSI revision: 02
+scsi0: Target 0: Queue Depth 28, Asynchronous
+Attached scsi disk sda at scsi0, channel 0, id 0, lun 0
+SCSI device sda: 8388608 512-byte hdwr sectors (4295 MB)
+Partition check:
+ sda: sda1 sda2 sda3
+Loading jbd module
+Journalled Block Device driver loaded
+Loading ext3 module
+Mounting /proc filesystem
+Creating block devices
+Creating root device
+Mounting root filesystem
+EXT3-fs: INFO: recovery required on readonly filesystem.
+EXT3-fs: write access will be enabled during recovery.
+scsi0: Tagged Queuing now active for Target 0
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+Freeing unused kernel memory: 172k freed
+INIT: version 2.84 booting
+		Welcome to Red Hat Linux
+		Press 'I' to enter interactive startup.
+Mounting proc filesystem:  [  OK  ]
+Unmounting initrd:  [  OK  ]
+Configuring kernel parameters:  [  OK  ]
+Setting clock  (localtime): Fri May 17 16:21:31 IDT 2019 [  OK  ]
+Setting hostname localhost.localdomain:  [  OK  ]
+Initializing USB controller (usb-uhci):  [  OK  ]
+Initializing USB controller (ehci-hcd):  [  OK  ]
+Mounting USB filesystem:  [  OK  ]
+Initializing USB HID interface:  [  OK  ]
+Initializing USB keyboard:  [  OK  ]
+Initializing USB mouse:  [  OK  ]
+Your system appears to have shut down uncleanly
+Press Y within 5 seconds to force file system integrity check...Press Y within 4 seconds to force file system integrity check...Press Y within 3 seconds to force file system integrity check...Press Y within 2 seconds to force file system integrity check...Press Y within 1 seconds to force file system integrity check...
+Checking root filesystem
+/: clean, 106920/471424 files, 506293/941810 blocks
+[/sbin/fsck.ext3 (1) -- /] fsck.ext3 -a /dev/sda2 
+[  OK  ]
+Remounting root filesystem in read-write mode:  [  OK  ]
+Activating swap partitions:  [  OK  ]
+Finding module dependencies:  [  OK  ]
+Checking filesystems
+/boot: recovering journal
+/boot: clean, 47/26104 files, 14631/104391 blocks
+Checking all file systems.
+[/sbin/fsck.ext3 (1) -- /boot] fsck.ext3 -a /dev/sda1 
+[  OK  ]
+Mounting local filesystems:  [  OK  ]
+Enabling local filesystem quotas:  [  OK  ]
+Enabling swap space:  [  OK  ]
+INIT: Entering runlevel: 5
+Entering non-interactive startup
+Updating /etc/fstab [  OK  ]
+Checking for new hardwareATATI9AT[1;24r[4l[?25l[?1c[0;10m[37m[40m[1;24r[H[J[1;1H[1m[37m[44m[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[1;1H[33mHardware Discovery Utility 0.99.69                     (C) 2001 Red Hat, Inc.[6;10H[0;10m[30m[47m┌────────────────────┤ [31mWelcome to Kudzu[30m ├────────────────────┐[7;10H│                                                            │[1m[37m[40m [8;10H[0;10m[30m[47m│ Welcome to Kudzu, the Red Hat Linux hardware detection     │[1m[37m[40m [9;10H[0;10m[30m[47m│ and configuration tool.                                    │[1m[37m[40m [10;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [11;10H[0;10m[30m[47m│ On the following screens you will be able to configure     │[1m[37m[40m [12;10H[0;10m[30m[47m│ any new or removed hardware for your computer.             │[1m[37m[40m [13;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [14;10H[0;10m[30m[47m│                 Press any key to continue.                 │[1m[37m[40m [15;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [16;10H[0;10m[30m[47m│          Normal bootup will continue in 30 seconds.        │[1m[37m[40m [17;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [18;10H[0;10m[30m[47m└────────────────────────────────────────────────────────────┘[1m[37m[40m [19;11H                                                              [24;2H[44m<Tab>/<Alt-Tab> between elements   |   <Space> selects  |   <F12> next screen [4h [4l[16;63H[16;52H[0;10m[30m[47m29[16;63H[16;53H8[16;63H[16;53H7[16;63H[16;53H6[16;63H[16;53H5[16;63H[16;53H4[16;63H[16;53H3[16;63H[16;53H2[16;63H[16;53H1[16;63H[16;53H0[16;63H[16;52H19[16;63H[16;53H8[16;63H[16;53H7[16;63H[16;53H6[16;63H[16;53H5[16;63H[16;53H4[16;63H[16;53H3[16;63H[16;53H2[16;63H[16;53H1[16;63H[16;53H0[16;63H[16;52H9 seconds. [16;52H8[16;62H[16;52H7[16;62H[16;52H6[16;62H[16;52H5[16;62H[16;52H4[16;62H[16;52H3[16;62H[16;52H2[16;62H[16;52H1[16;62H[37m[40m[12;13r[12;1H[1M[1;24r[11;12H[30m[47m                                                      
+
+[1m[37m[44m         [0;10m[30m[47m│                              Timeout exceeded.             │[1m[37m[40m [44m[K[14;28H[0;10m[30m[47m                          [16;21H                                         [13;58H[37m[40m[12;13r[12;1H[1L[1;24r[11;12H[30m[47mOn the following screens you will be able to configure
+[1m[37m[44m         [0;10m[30m[47m│ any new or removed hardware for your computer.             │[1m[37m[40m [44m[K[14;28H[0;10m[30m[47mPress any key to continue.[16;21HNormal bootup will continue in 1 seconds.[19;10H[6;10H[1m[37m[44m[K[7;10H[K[8;10H[K[9;10H[K[10;10H[K[11;10H[K[12;10H[K[13;10H[K[14;10H[K[15;10H[K[16;10H[K[17;10H[K[18;10H[K[19;11H[K[?25h[?0c[24;1H[0;10m[37m[40m[0;10m[39;49m[K [FAILED]
+Hardware configuration timed out.Run '/usr/sbin/kudzu' from the command line to re-detect.Starting VMware Tools services in the virtual machine:
+   Switching to guest configuration:[  OK  ]
+   Guest filesystem driver:insmod:   See http://www.tux.org/lkml/#export-tainted for information about tainted modules
+insmod: Module vmhgfs loaded, with warnings
+[  OK  ]
+   DMA setup:[  OK  ]
+   Guest operating system daemon:[  OK  ]
+Starting iptables:  [  OK  ]
+Setting network parameters:  [  OK  ]
+Bringing up loopback interface:  [  OK  ]
+Bringing up interface eth0:  [  OK  ]
+Starting system logger: [  OK  ]
+Starting kernel logger: [  OK  ]
+Starting portmapper: [  OK  ]
+Starting NFS statd: [  OK  ]
+Starting keytable:  [  OK  ]
+Initializing random number generator:  [  OK  ]
+Starting pcmcia:  [  OK  ]
+Mounting other filesystems:  [  OK  ]
+Starting up APM daemon: [  OK  ]
+Starting automount: No Mountpoints Defined[  OK  ]
+Starting sshd:  [  OK  ]
+Starting xinetd: [  OK  ]
+Starting lpd: No Printers Defined[  OK  ]
+Starting console mouse services: [  OK  ]
+Starting crond: [  OK  ]
+Starting xfs: [  OK  ]
+Starting anacron: [  OK  ]
+Starting atd: [  OK  ]
+mtrr: type mismatch for e8000000,8000000 old: uncachable new: write-combining
+process 1012 : policy is : 0,  policy to be sched with : 5
+process 1012 was scheduled with SCHED_SHORT
+process 1012 : policy is : 5, time slice is : 3
+process 1013 : policy is : 0,  policy to be sched with : 5
+process 1013 was scheduled with SCHED_SHORT
+process 1013 : policy is : 5, time slice is : 148
+process 1013 : policy is : 5, time slice is : 146
+process 1013 : policy is : 5, time slice is : 144
+process 1013 : policy is : 5, time slice is : 142
+process 1013 : policy is : 5, time slice is : 140
+process 1013 : policy is : 5, time slice is : 138
+process 1013 : policy is : 5, time slice is : 136
+process 1013 : policy is : 5, time slice is : 134
+process 1013 : policy is : 5, time slice is : 132
+process 1013 : policy is : 5, time slice is : 130
+process 1013 : policy is : 5, time slice is : 128
+process 1013 : policy is : 5, time slice is : 126
+process 1013 : policy is : 5, time slice is : 125
+process 1013 : policy is : 5, time slice is : 123
+process 1013 : policy is : 5, time slice is : 121
+process 1013 : policy is : 5, time slice is : 119
+process 1013 : policy is : 5, time slice is : 117
+process 1013 : policy is : 5, time slice is : 115
+process 1013 : policy is : 5, time slice is : 113
+process 1013 : policy is : 5, time slice is : 111
+process 1013 : policy is : 5, time slice is : 109
+process 1013 : policy is : 5, time slice is : 107
+process 1013 : policy is : 5, time slice is : 105
+process 1013 : policy is : 5, time slice is : 103
+process 1013 : policy is : 5, time slice is : 101
+process 1013 : policy is : 5, time slice is : 99
+process 1013 : policy is : 5, time slice is : 97
+process 1013 : policy is : 5, time slice is : 95
+process 1013 : policy is : 5, time slice is : 93
+process 1013 : policy is : 5, time slice is : 91
+process 1013 : policy is : 5, time slice is : 89
+process 1013 : policy is : 5, time slice is : 87
+process 1013 : policy is : 5, time slice is : 85
+process 1013 : policy is : 5, time slice is : 83
+process 1013 : policy is : 5, time slice is : 82
+process 1013 : policy is : 5, time slice is : 80
+process 1013 : policy is : 5, time slice is : 78
+process 1013 : policy is : 5, time slice is : 76
+process 1013 : policy is : 5, time slice is : 74
+process 1013 : policy is : 5, time slice is : 72
+process 1013 : policy is : 5, time slice is : 70
+process 1013 : policy is : 5, time slice is : 68
+process 1013 : policy is : 5, time slice is : 66
+process 1013 : policy is : 5, time slice is : 64
+process 1013 : policy is : 5, time slice is : 62
+process 1013 : policy is : 5, time slice is : 60
+process 1013 : policy is : 5, time slice is : 58
+process 1013 : policy is : 5, time slice is : 56
+process 1013 : policy is : 5, time slice is : 54
+process 1013 : policy is : 5, time slice is : 52
+process 1013 : policy is : 5, time slice is : 50
+process 1013 : policy is : 5, time slice is : 48
+process 1013 : policy is : 5, time slice is : 46
+process 1013 : policy is : 5, time slice is : 44
+process 1013 : policy is : 5, time slice is : 42
+process 1013 : policy is : 5, time slice is : 41
+process 1013 : policy is : 5, time slice is : 39
+process 1013 : policy is : 5, time slice is : 37
+process 1013 : policy is : 5, time slice is : 35
+process 1013 : policy is : 5, time slice is : 33
+process 1013 : policy is : 5, time slice is : 31
+process 1013 : policy is : 5, time slice is : 29
+process 1013 : policy is : 5, time slice is : 27
+process 1013 : policy is : 5, time slice is : 25
+process 1013 : policy is : 5, time slice is : 23
+process 1013 : policy is : 5, time slice is : 21
+process 1013 : policy is : 5, time slice is : 19
+process 1013 : policy is : 5, time slice is : 17
+process 1013 : policy is : 5, time slice is : 15
+process 1013 : policy is : 5, time slice is : 13
+process 1013 : policy is : 5, time slice is : 11
+process 1013 : policy is : 5, time slice is : 9
+process 1013 : policy is : 5, time slice is : 7
+process 1013 : policy is : 5, time slice is : 5
+process 1013 : policy is : 5, time slice is : 3
+process 1013 : policy is : 5, time slice is : 1
+process 1013 : policy is : 5, time slice is : 0
+process 1013 : policy is : 0,  policy to be sched with : 5
+process 1013 was scheduled with SCHED_SHORT
+process 1013 : policy is : 5, time slice is : 148
+process 1013 : policy is : 5, time slice is : 146
+process 1013 : policy is : 5, time slice is : 144
+process 1013 : policy is : 5, time slice is : 142
+process 1013 : policy is : 5, time slice is : 140
+process 1013 : policy is : 5, time slice is : 138
+process 1013 : policy is : 5, time slice is : 136
+process 1013 : policy is : 5, time slice is : 134
+process 1013 : policy is : 5, time slice is : 132
+process 1013 : policy is : 5, time slice is : 130
+process 1013 : policy is : 5, time slice is : 128
+process 1013 : policy is : 5, time slice is : 126
+process 1013 : policy is : 5, time slice is : 125
+process 1013 : policy is : 5, time slice is : 123
+process 1013 : policy is : 5, time slice is : 121
+process 1013 : policy is : 5, time slice is : 119
+process 1013 : policy is : 5, time slice is : 117
+process 1013 : policy is : 5, time slice is : 115
+process 1013 : policy is : 5, time slice is : 113
+process 1013 : policy is : 5, time slice is : 111
+process 1013 : policy is : 5, time slice is : 109
+process 1013 : policy is : 5, time slice is : 107
+process 1013 : policy is : 5, time slice is : 105
+process 1013 : policy is : 5, time slice is : 103
+process 1013 : policy is : 5, time slice is : 101
+process 1013 : policy is : 5, time slice is : 99
+process 1013 : policy is : 5, time slice is : 97
+process 1013 : policy is : 5, time slice is : 95
+process 1013 : policy is : 5, time slice is : 93
+process 1013 : policy is : 5, time slice is : 91
+process 1013 : policy is : 5, time slice is : 89
+process 1013 : policy is : 5, time slice is : 87
+process 1013 : policy is : 5, time slice is : 85
+process 1013 : policy is : 5, time slice is : 83
+process 1013 : policy is : 5, time slice is : 82
+process 1013 : policy is : 5, time slice is : 80
+process 1013 : policy is : 5, time slice is : 78
+process 1013 : policy is : 5, time slice is : 76
+process 1013 : policy is : 5, time slice is : 74
+process 1013 : policy is : 5, time slice is : 72
+process 1013 : policy is : 5, time slice is : 70
+process 1013 : policy is : 5, time slice is : 68
+process 1013 : policy is : 5, time slice is : 66
+process 1013 : policy is : 5, time slice is : 64
+process 1013 : policy is : 5, time slice is : 62
+process 1013 : policy is : 5, time slice is : 60
+process 1013 : policy is : 5, time slice is : 58
+process 1013 : policy is : 5, time slice is : 56
+process 1013 : policy is : 5, time slice is : 54
+process 1013 : policy is : 5, time slice is : 52
+process 1013 : policy is : 5, time slice is : 50
+process 1013 : policy is : 5, time slice is : 48
+process 1013 : policy is : 5, time slice is : 46
+process 1013 : policy is : 5, time slice is : 44
+process 1013 : policy is : 5, time slice is : 42
+process 1013 : policy is : 5, time slice is : 41
+process 1013 : policy is : 5, time slice is : 39
+process 1013 : policy is : 5, time slice is : 37
+process 1013 : policy is : 5, time slice is : 35
+process 1013 : policy is : 5, time slice is : 33
+process 1013 : policy is : 5, time slice is : 31
+process 1013 : policy is : 5, time slice is : 29
+process 1013 : policy is : 5, time slice is : 27
+process 1013 : policy is : 5, time slice is : 25
+process 1013 : policy is : 5, time slice is : 23
+process 1013 : policy is : 5, time slice is : 21
+process 1013 : policy is : 5, time slice is : 19
+process 1013 : policy is : 5, time slice is : 17
+process 1013 : policy is : 5, time slice is : 15
+process 1013 : policy is : 5, time slice is : 13
+process 1013 : policy is : 5, time slice is : 11
+process 1013 : policy is : 5, time slice is : 9
+process 1013 : policy is : 5, time slice is : 7
+process 1013 : policy is : 5, time slice is : 5
+process 1013 : policy is : 5, time slice is : 3
+process 1013 : policy is : 5, time slice is : 1
+process 1013 : policy is : 5, time slice is : 0
+process 1013 : policy is : 0,  policy to be sched with : 5
+process 1013 was scheduled with SCHED_SHORT
+process 1013 : policy is : 5, time slice is : 148
+process 1013 : policy is : 5, time slice is : 146
+process 1013 : policy is : 5, time slice is : 144
+process 1013 : policy is : 5, time slice is : 142
+process 1013 : policy is : 5, time slice is : 140
+process 1013 : policy is : 5, time slice is : 138
+process 1013 : policy is : 5, time slice is : 136
+process 1013 : policy is : 5, time slice is : 134
+process 1013 : policy is : 5, time slice is : 132
+process 1013 : policy is : 5, time slice is : 130
+process 1013 : policy is : 5, time slice is : 128
+process 1013 : policy is : 5, time slice is : 126
+process 1013 : policy is : 5, time slice is : 125
+process 1013 : policy is : 5, time slice is : 123
+process 1013 : policy is : 5, time slice is : 121
+process 1013 : policy is : 5, time slice is : 119
+process 1013 : policy is : 5, time slice is : 117
+process 1013 : policy is : 5, time slice is : 115
+process 1013 : policy is : 5, time slice is : 113
+process 1013 : policy is : 5, time slice is : 111
+process 1013 : policy is : 5, time slice is : 109
+process 1013 : policy is : 5, time slice is : 107
+process 1013 : policy is : 5, time slice is : 105
+process 1013 : policy is : 5, time slice is : 103
+process 1013 : policy is : 5, time slice is : 101
+process 1013 : policy is : 5, time slice is : 99
+process 1013 : policy is : 5, time slice is : 97
+process 1013 : policy is : 5, time slice is : 95
+process 1013 : policy is : 5, time slice is : 93
+process 1013 : policy is : 5, time slice is : 91
+process 1013 : policy is : 5, time slice is : 89
+process 1013 : policy is : 5, time slice is : 87
+process 1013 : policy is : 5, time slice is : 85
+process 1013 : policy is : 5, time slice is : 83
+process 1013 : policy is : 5, time slice is : 82
+process 1013 : policy is : 5, time slice is : 80
+process 1013 : policy is : 5, time slice is : 78
+process 1013 : policy is : 5, time slice is : 76
+process 1013 : policy is : 5, time slice is : 74
+process 1013 : policy is : 5, time slice is : 72
+process 1013 : policy is : 5, time slice is : 70
+process 1013 : policy is : 5, time slice is : 68
+process 1013 : policy is : 5, time slice is : 66
+process 1013 : policy is : 5, time slice is : 64
+process 1013 : policy is : 5, time slice is : 62
+process 1013 : policy is : 5, time slice is : 60
+process 1013 : policy is : 5, time slice is : 58
+process 1013 : policy is : 5, time slice is : 56
+process 1013 : policy is : 5, time slice is : 54
+process 1013 : policy is : 5, time slice is : 52
+process 1013 : policy is : 5, time slice is : 50
+process 1013 : policy is : 5, time slice is : 48
+process 1013 : policy is : 5, time slice is : 46
+process 1013 : policy is : 5, time slice is : 44
+process 1013 : policy is : 5, time slice is : 42
+process 1013 : policy is : 5, time slice is : 41
+process 1013 : policy is : 5, time slice is : 39
+process 1013 : policy is : 5, time slice is : 37
+process 1013 : policy is : 5, time slice is : 35
+process 1013 : policy is : 5, time slice is : 33
+process 1013 : policy is : 5, time slice is : 31
+process 1013 : policy is : 5, time slice is : 29
+process 1013 : policy is : 5, time slice is : 27
+process 1013 : policy is : 5, time slice is : 25
+process 1013 : policy is : 5, time slice is : 23
+process 1013 : policy is : 5, time slice is : 21
+process 1013 : policy is : 5, time slice is : 19
+process 1013 : policy is : 5, time slice is : 17
+process 1013 : policy is : 5, time slice is : 15
+process 1013 : policy is : 5, time slice is : 13
+process 1013 : policy is : 5, time slice is : 11
+process 1013 : policy is : 5, time slice is : 9
+process 1013 : policy is : 5, time slice is : 7
+process 1013 : policy is : 5, time slice is : 5
+process 1013 : policy is : 5, time slice is : 3
+process 1013 : policy is : 5, time slice is : 1
+process 1013 : policy is : 5, time slice is : 0
+process 1018 : policy is : 0,  policy to be sched with : 5
+process 1018 was scheduled with SCHED_SHORT
+process 1018 : policy is : 5, time slice is : 3
+Linux version 2.4.18-14custom (root@localhost.localdomain) (gcc version 3.2 20020903 (Red Hat Linux 8.0 3.2-7)) #19 Fri May 17 16:02:22 IDT 2019
+BIOS-provided physical RAM map:
+ BIOS-e820: 0000000000000000 - 000000000009f800 (usable)
+ BIOS-e820: 000000000009f800 - 00000000000a0000 (reserved)
+ BIOS-e820: 00000000000dc000 - 0000000000100000 (reserved)
+ BIOS-e820: 0000000000100000 - 000000007fee0000 (usable)
+ BIOS-e820: 000000007fee0000 - 000000007feff000 (ACPI data)
+ BIOS-e820: 000000007feff000 - 000000007ff00000 (ACPI NVS)
+ BIOS-e820: 000000007ff00000 - 0000000080000000 (usable)
+ BIOS-e820: 00000000f0000000 - 00000000f8000000 (reserved)
+ BIOS-e820: 00000000fec00000 - 00000000fec10000 (reserved)
+ BIOS-e820: 00000000fee00000 - 00000000fee01000 (reserved)
+ BIOS-e820: 00000000fffe0000 - 0000000100000000 (reserved)
+1152MB HIGHMEM available.
+896MB LOWMEM available.
+On node 0 totalpages: 524288
+zone(0): 4096 pages.
+zone(1): 225280 pages.
+zone(2): 294912 pages.
+Kernel command line: ro root=LABEL=/ console=tty0 console=ttyS1
+Initializing CPU#0
+Detected 2590.536 MHz processor.
+Console: colour VGA+ 80x25
+Calibrating delay loop... 5153.76 BogoMIPS
+Memory: 2060556k/2097152k available (1299k kernel code, 31856k reserved, 956k data, 172k init, 1179520k highmem)
+Dentry cache hash table entries: 262144 (order: 9, 2097152 bytes)
+Inode cache hash table entries: 131072 (order: 8, 1048576 bytes)
+Mount cache hash table entries: 32768 (order: 6, 262144 bytes)
+Buffer cache hash table entries: 131072 (order: 7, 524288 bytes)
+Page-cache hash table entries: 524288 (order: 9, 2097152 bytes)
+Intel machine check architecture supported.
+Intel machine check reporting enabled on CPU#0.
+CPU: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz stepping 03
+Enabling fast FPU save and restore... done.
+Enabling unmasked SIMD FPU exception support... done.
+Checking 'hlt' instruction... OK.
+POSIX conformance testing by UNIFIX
+mtrr: v1.40 (20010327) Richard Gooch (rgooch@atnf.csiro.au)
+mtrr: detected mtrr type: Intel
+PCI: PCI BIOS revision 2.10 entry at 0xfd8a0, last bus=34
+PCI: Using configuration type 1
+PCI: Probing PCI hardware
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 1: assuming transparent
+Unknown bridge resource 2: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+Unknown bridge resource 0: assuming transparent
+PCI: Using IRQ router PIIX [8086/7110] at 00:07.0
+Limiting direct PCI/PCI transfers.
+isapnp: Scanning for PnP cards...
+isapnp: No Plug & Play device found
+Linux NET4.0 for Linux 2.4
+Based upon Swansea University Computer Society NET3.039
+Initializing RT netlink socket
+apm: BIOS version 1.2 Flags 0x03 (Driver version 1.16)
+Starting kswapd
+allocated 64 pages and 64 bhs reserved for the highmem bounces
+VFS: Diskquotas version dquot_6.5.0 initialized
+pty: 2048 Unix98 ptys configured
+Serial driver version 5.05c (2001-07-08) with MANY_PORTS MULTIPORT SHARE_IRQ SERIAL_PCI ISAPNP enabled
+ttyS0 at 0x03f8 (irq = 4) is a 16550A
+ttyS1 at 0x02f8 (irq = 3) is a 16550A
+Real Time Clock Driver v1.10e
+oprofile: mapping APIC.
+oprofile: no local P6 APIC. Falling back to RTC mode.
+Your CPU does not have a local APIC, e.g. mobile P6. Falling back to RTC mode.
+oprofile: can't get RTC I/O Ports
+block: 1024 slots per queue, batch=256
+Uniform Multi-Platform E-IDE driver Revision: 6.31
+ide: Assuming 33MHz system bus speed for PIO modes; override with idebus=xx
+PIIX4: IDE controller on PCI bus 00 dev 39
+PIIX4: chipset revision 1
+PIIX4: not 100% native mode: will probe irqs later
+    ide0: BM-DMA at 0x10c0-0x10c7, BIOS settings: hda:pio, hdb:pio
+    ide1: BM-DMA at 0x10c8-0x10cf, BIOS settings: hdc:DMA, hdd:pio
+hdc: VMware Virtual IDE CDROM Drive, ATAPI CD/DVD-ROM drive
+ide1 at 0x170-0x177,0x376 on irq 15
+ide-floppy driver 0.99.newide
+Floppy drive(s): fd0 is 1.44M
+FDC 0 is a post-1991 82077
+NET4: Frame Diverter 0.46
+RAMDISK driver initialized: 16 RAM disks of 4096K size 1024 blocksize
+ide-floppy driver 0.99.newide
+md: md driver 0.90.0 MAX_MD_DEVS=256, MD_SB_DISKS=27
+md: Autodetecting RAID arrays.
+md: autorun ...
+md: ... autorun DONE.
+NET4: Linux TCP/IP 1.0 for NET4.0
+IP Protocols: ICMP, UDP, TCP, IGMP
+IP: routing cache hash table of 16384 buckets, 128Kbytes
+TCP: Hash tables configured (established 262144 bind 65536)
+Linux IP multicast router 0.06 plus PIM-SM
+NET4: Unix domain sockets 1.0/SMP for Linux NET4.0.
+RAMDISK: Compressed image found at block 0
+Freeing initrd memory: 230k freed
+VFS: Mounted root (ext2 filesystem).
+Red Hat nash version 3.4.28 starting
+Loading scsi_mod module
+SCSI subsystem driver Revision: 1.00
+Loading sd_mod module
+kmod: failed to exec /sbin/modprobe -s -k scsi_hostadapter, errno = 2
+Loading BusLogic module
+PCI: Found IRQ 11 for device 00:10.0
+scsi: ***** BusLogic SCSI Driver Version 2.1.15 of 17 August 1998 *****
+scsi: Copyright 1995-1998 by Leonard N. Zubkoff <lnz@dandelion.com>
+scsi0: Configuring BusLogic Model BT-958 PCI Wide Ultra SCSI Host Adapter
+scsi0:   Firmware Version: 5.07B, I/O Address: 0x1060, IRQ Channel: 11/Level
+scsi0:   PCI Bus: 0, Device: 16, Address: 0xFEBFD000, Host Adapter SCSI ID: 7
+scsi0:   Parity Checking: Enabled, Extended Translation: Enabled
+scsi0:   Synchronous Negotiation: Ultra, Wide Negotiation: Enabled
+scsi0:   Disconnect/Reconnect: Enabled, Tagged Queuing: Enabled
+scsi0:   Scatter/Gather Limit: 128 of 8192 segments, Mailboxes: 211
+scsi0:   Driver Queue Depth: 211, Host Adapter Queue Depth: 192
+scsi0:   Tagged Queue Depth: Automatic, Untagged Queue Depth: 3
+scsi0:   Error Recovery Strategy: Default, SCSI Bus Reset: Enabled
+scsi0: *** BusLogic BT-958 Initialized Successfully ***
+scsi0 : BusLogic BT-958
+  Vendor: VMware,   Model: VMware Virtual S  Rev: 1.0 
+  Type:   Direct-Access                      ANSI SCSI revision: 02
+scsi0: Target 0: Queue Depth 28, Asynchronous
+Attached scsi disk sda at scsi0, channel 0, id 0, lun 0
+SCSI device sda: 8388608 512-byte hdwr sectors (4295 MB)
+Partition check:
+ sda: sda1 sda2 sda3
+Loading jbd module
+Journalled Block Device driver loaded
+Loading ext3 module
+Mounting /proc filesystem
+Creating block devices
+Creating root device
+Mounting root filesystem
+EXT3-fs: INFO: recovery required on readonly filesystem.
+EXT3-fs: write access will be enabled during recovery.
+scsi0: Tagged Queuing now active for Target 0
+kjournald starting.  Commit interval 5 seconds
+EXT3-fs: recovery complete.
+EXT3-fs: mounted filesystem with ordered data mode.
+Freeing unused kernel memory: 172k freed
+INIT: version 2.84 booting
+		Welcome to Red Hat Linux
+		Press 'I' to enter interactive startup.
+Mounting proc filesystem:  [  OK  ]
+Unmounting initrd:  [  OK  ]
+Configuring kernel parameters:  [  OK  ]
+Setting clock  (localtime): Fri May 17 16:25:32 IDT 2019 [  OK  ]
+Setting hostname localhost.localdomain:  [  OK  ]
+Initializing USB controller (usb-uhci):  [  OK  ]
+Initializing USB controller (ehci-hcd):  [  OK  ]
+Mounting USB filesystem:  [  OK  ]
+Initializing USB HID interface:  [  OK  ]
+Initializing USB keyboard:  [  OK  ]
+Initializing USB mouse:  [  OK  ]
+Your system appears to have shut down uncleanly
+Press Y within 5 seconds to force file system integrity check...Press Y within 4 seconds to force file system integrity check...Press Y within 3 seconds to force file system integrity check...Press Y within 2 seconds to force file system integrity check...Press Y within 1 seconds to force file system integrity check...
+Checking root filesystem
+/: clean, 106919/471424 files, 506304/941810 blocks
+[/sbin/fsck.ext3 (1) -- /] fsck.ext3 -a /dev/sda2 
+[  OK  ]
+Remounting root filesystem in read-write mode:  [  OK  ]
+Activating swap partitions:  [  OK  ]
+Finding module dependencies:  [  OK  ]
+Checking filesystems
+/boot: recovering journal
+/boot: clean, 47/26104 files, 14631/104391 blocks
+Checking all file systems.
+[/sbin/fsck.ext3 (1) -- /boot] fsck.ext3 -a /dev/sda1 
+[  OK  ]
+Mounting local filesystems:  [  OK  ]
+Enabling local filesystem quotas:  [  OK  ]
+Enabling swap space:  [  OK  ]
+Entering non-interactive startup
+Updating /etc/fstab [  OK  ]
+Checking for new hardwareATATI9AT[1;24r[4l[?25l[?1c[0;10m[37m[40m[1;24r[H[J[1;1H[1m[37m[44m[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[1;1H[33mHardware Discovery Utility 0.99.69                     (C) 2001 Red Hat, Inc.[6;10H[0;10m[30m[47m┌────────────────────┤ [31mWelcome to Kudzu[30m ├────────────────────┐[7;10H│                                                            │[1m[37m[40m [8;10H[0;10m[30m[47m│ Welcome to Kudzu, the Red Hat Linux hardware detection     │[1m[37m[40m [9;10H[0;10m[30m[47m│ and configuration tool.                                    │[1m[37m[40m [10;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [11;10H[0;10m[30m[47m│ On the following screens you will be able to configure     │[1m[37m[40m [12;10H[0;10m[30m[47m│ any new or removed hardware for your computer.             │[1m[37m[40m [13;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [14;10H[0;10m[30m[47m│                 Press any key to continue.                 │[1m[37m[40m [15;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [16;10H[0;10m[30m[47m│          Normal bootup will continue in 30 seconds.        │[1m[37m[40m [17;10H[0;10m[30m[47m│                                                            │[1m[37m[40m [18;10H[0;10m[30m[47m└────────────────────────────────────────────────────────────┘[1m[37m[40m [19;11H                                                              [24;2H[44m<Tab>/<Alt-Tab> between elements   |   <Space> selects  |   <F12> next screen [4h [4l[16;63H[16;52H[0;10m[30m[47m29[16;63H[16;53H8[16;63H[16;53H7[16;63H[16;53H6[16;63H[16;53H5[16;63H[16;53H4[16;63H[16;53H3[16;63H[16;53H2[16;63H[16;53H1[16;63H[16;53H0[16;63H[16;52H19[16;63H[16;53H8[16;63H[16;53H7[16;63H[16;53H6[16;63H[16;53H5[16;63H[16;53H4[16;63H[16;53H3[16;63H[16;53H2[16;63H[16;53H1[16;63H[16;53H0[16;63H[16;52H9 seconds. [16;52H8[16;62H[16;52H7[16;62H[16;52H6[16;62H[16;52H5[16;62H[16;52H4[16;62H[16;52H3[16;62H[16;52H2[16;62H[16;52H1[16;62H[37m[40m[12;13r[12;1H[1M[1;24r[11;12H[30m[47m                                                      
+
+[1m[37m[44m         [0;10m[30m[47m│                              Timeout exceeded.             │[1m[37m[40m [44m[K[14;28H[0;10m[30m[47m                          [16;21H                                         [13;58H[37m[40m[12;13r[12;1H[1L[1;24r[11;12H[30m[47mOn the following screens you will be able to configure
+[1m[37m[44m         [0;10m[30m[47m│ any new or removed hardware for your computer.             │[1m[37m[40m [44m[K[14;28H[0;10m[30m[47mPress any key to continue.[16;21HNormal bootup will continue in 1 seconds.[19;10H[6;10H[1m[37m[44m[K[7;10H[K[8;10H[K[9;10H[K[10;10H[K[11;10H[K[12;10H[K[13;10H[K[14;10H[K[15;10H[K[16;10H[K[17;10H[K[18;10H[K[19;11H[K[?25h[?0c[24;1H[0;10m[37m[40m[0;10m[39;49m[K [FAILED]
+Hardware configuration timed out.Run '/usr/sbin/kudzu' from the command line to re-detect.Starting VMware Tools services in the virtual machine:
+   Switching to guest configuration:[  OK  ]
+   Guest filesystem driver:insmod:   See http://www.tux.org/lkml/#export-tainted for information about tainted modules
+insmod: Module vmhgfs loaded, with warnings
+[  OK  ]
+   DMA setup:[  OK  ]
+   Guest operating system daemon:[  OK  ]
+Starting iptables:  [  OK  ]
+Setting network parameters:  [  OK  ]
+Bringing up loopback interface:  [  OK  ]
+Bringing up interface eth0:  [  OK  ]
+Starting system logger: [  OK  ]
+Starting kernel logger: [  OK  ]
+Starting portmapper: [  OK  ]
+Starting NFS statd: [  OK  ]
+Starting keytable:  [  OK  ]
+Initializing random number generator:  [  OK  ]
+Starting pcmcia:  [  OK  ]
+Mounting other filesystems:  [  OK  ]
+Starting up APM daemon: [  OK  ]
+Starting automount: No Mountpoints Defined[  OK  ]
+Starting sshd:  [  OK  ]
+Starting xinetd: [  OK  ]
+Starting lpd: No Printers Defined[  OK  ]
+Starting console mouse services: [  OK  ]
+Starting crond: [  OK  ]
+Starting xfs: [  OK  ]
+Starting anacron: [  OK  ]
+Starting atd: [  OK  ]
+mtrr: type mismatch for e8000000,8000000 old: uncachable new: write-combining
+
