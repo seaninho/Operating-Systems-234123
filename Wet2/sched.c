@@ -215,10 +215,8 @@ static inline void dequeue_task(struct task_struct *p, prio_array_t *array)
 {
 	array->nr_active--;
 	list_del(&p->run_list);
-	if (list_empty(array->queue + p->prio)) {
+	if (list_empty(array->queue + p->prio))
 		__clear_bit(p->prio, array->bitmap);
-	}
-
 }
 
 static inline void enqueue_task(struct task_struct *p, prio_array_t *array)
@@ -394,7 +392,9 @@ repeat_lock_task:
 		 * If sync is set, a resched_task() is a NOOP
 		 */
 		/* HW2 */
-		if (p->prio < rq->curr->prio && p->policy != SCHED_SHORT)
+		if ((p->prio < rq->curr->prio && !(rt_task(rq->curr) && p->policy == SCHED_SHORT)) ||
+				(rq->curr->policy == SCHED_OTHER && p->policy == SCHED_SHORT) ||
+					(rq->curr->policy == SCHED_SHORT && rt_task(p)))
 			resched_task(rq->curr);
 		success = 1;
 	}
@@ -781,24 +781,27 @@ void scheduler_tick(int user_tick, int system)
 		goto out;
 	}
 
-	if (p->policy == SCHED_SHORT) {
-		printk("process %d : policy is : %d, time slice is : %d\n", p->pid, p->policy, p->time_slice*1000/HZ);
-	}
 
-	// if ((p->policy == SCHED_SHORT) && !--p->time_slice) {
-	// 	printk("process time_slice is zero \n");
-	// 	p->policy = SCHED_OTHER;
-	// 	p->static_prio = min(p->old_static_prio + 7,MAX_PRIO - 1);
-	// 	p->sleep_avg = 0.5 * MAX_SLEEP_AVG;
-	// 	p->prio = effective_prio(p);
-	// 	p->time_slice = TASK_TIMESLICE(p);
-	// 	p->first_time_slice = 0;
-	// 	set_tsk_need_resched(p);
-	// 	/* process goes back to SCHED_OTHER policy */
-	// 	dequeue_task(p, rq->active_short);
-	// 	enqueue_task(p, rq->active);
-	// 	goto out;
-	// }
+	/* HW2 */
+	if (p->policy == SCHED_SHORT) {
+		// printk("process %d : policy is : %d, time slice is : %lu\n", p->pid, p->policy, p->time_slice*1000/HZ);
+		if (!--p->time_slice) {
+			printk("process time slice is done. Scheduling is now SCHED_OTHER \n");
+			/* process goes back to SCHED_OTHER policy */
+			dequeue_task(p, rq->active_short);
+			p->policy = SCHED_OTHER;
+			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO - 1);
+			p->sleep_avg = 0.5 * MAX_SLEEP_AVG;
+			p->prio = effective_prio(p);
+			p->time_slice = TASK_TIMESLICE(p);
+			p->first_time_slice = 0;
+			p->rt_priority = 0;
+			set_tsk_need_resched(p);
+			enqueue_task(p, rq->active);
+		}
+		goto out;
+	}
+	/* HW2 end */
 
 	/*
 	 * The task was running during this tick - update the
@@ -811,21 +814,6 @@ void scheduler_tick(int user_tick, int system)
 	if (p->sleep_avg)
 		p->sleep_avg--;
 	if (!--p->time_slice) {
-		/* HW2 */
-		if (p->policy == SCHED_SHORT) {
-			printk("process %d : policy is : %d, time slice is : %d\n", p->pid, p->policy, p->time_slice*1000/HZ);
-			p->policy = SCHED_OTHER;
-			p->static_prio = min(p->old_static_prio + 7,MAX_PRIO - 1);
-			p->sleep_avg = 0.5 * MAX_SLEEP_AVG;
-			p->prio = effective_prio(p);
-			p->time_slice = TASK_TIMESLICE(p);
-			p->first_time_slice = 0;
-			set_tsk_need_resched(p);
-			/* process goes back to SCHED_OTHER policy */
-			dequeue_task(p, rq->active_short);
-			enqueue_task(p, rq->active);
-		} else
-		/* HW2 end */ {
 		dequeue_task(p, rq->active);
 		set_tsk_need_resched(p);
 		p->prio = effective_prio(p);
@@ -838,7 +826,6 @@ void scheduler_tick(int user_tick, int system)
 			enqueue_task(p, rq->expired);
 		} else
 			enqueue_task(p, rq->active);
-		}
 	}
 out:
 #if CONFIG_SMP
@@ -899,7 +886,8 @@ pick_next_task:
 	}
 
 	array = rq->active;
-	if (unlikely(!array->nr_active)) {
+	/* HW2 */
+	if (unlikely(!array->nr_active) && !rq->active_short->nr_active) {
 		/*
 		 * Switch the active and expired arrays.
 		 */
@@ -1273,21 +1261,24 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		goto out_unlock;
 
 	/* HW2 */
-	if ((policy == SCHED_SHORT && p->policy != SCHED_OTHER) || p->policy == SCHED_SHORT) {
-		printk("process %d is SCHED_SHORT or not SCHED_OTHER and wish to be changed to SCHED_SHORT\n", pid);
+	if (p->policy == SCHED_SHORT) {
+		// printk("process %d is SCHED_SHORT and cannot be changed!\n", pid);
+		goto out_unlock;
+	}
+
+	if (p->policy != SCHED_OTHER && policy == SCHED_SHORT) {
 		goto out_unlock;
 	}
 
 	retval = -EINVAL;
 	if (policy == SCHED_SHORT && (lp.requested_time < 1 || lp.requested_time > 3000 ||
 		lp.sched_short_prio < 0 || lp.sched_short_prio > 139))  {
-		printk("process %d is not SCHED_SHORT and wish to be changed to SCHED_SHORT with invalid parameters\n", pid);
 		goto out_unlock;
 	}
+
+	// printk("process %d : policy is : %d,  policy to be sched with : %d\n", pid, p->policy, policy);
 	/* HW2 end */
 
-
-	printk("process %d : policy is : %d,  policy to be sched with : %d\n", pid, p->policy, policy);
 	array = p->array;
 	if (array)
 		deactivate_task(p, task_rq(p));
@@ -1303,7 +1294,6 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 			p->prio = p->static_prio;
 	}
 	else {
-		printk("process %d was scheduled with SCHED_SHORT\n", pid);
 		p->old_static_prio = p->static_prio;
 		p->requested_time = lp.requested_time;
 		p->prio = lp.sched_short_prio;

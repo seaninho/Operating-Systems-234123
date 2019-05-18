@@ -592,15 +592,15 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	struct task_struct *p;
 	struct completion vfork;
 
-	/* HW2 */
-	if (current->policy == SCHED_SHORT)
-		return -EPERM;
-	/* HW2 end */
-
 	if ((clone_flags & (CLONE_NEWNS|CLONE_FS)) == (CLONE_NEWNS|CLONE_FS))
 		return -EINVAL;
 
 	retval = -EPERM;
+
+	/* HW2 */
+	if (current->policy == SCHED_SHORT)
+		goto fork_out;
+	/* HW2 end */
 
 	/*
 	 * CLONE_PID is only allowed for the initial SMP swapper
