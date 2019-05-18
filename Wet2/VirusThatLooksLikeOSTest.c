@@ -37,7 +37,7 @@
 
 #define STRESS_LEVEL 5000000
 
-#define TRIES 1
+#define TRIES 3
 
 
 struct sched_param param1 = {0, 80, 50};
@@ -843,7 +843,7 @@ int main() {
 	forkAndTest(test38);
 	forkAndTest(test39);
 	forkAndTest(test40);
-   
+
 	forkAndTest(stress_test1);
 	forkAndTest(stress_test2);
 
