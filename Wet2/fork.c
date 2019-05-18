@@ -598,6 +598,7 @@ int do_fork(unsigned long clone_flags, unsigned long stack_start,
 	retval = -EPERM;
 
 	/* HW2 */
+	// Task with SCHED_SHORT policy cannot do fork
 	if (current->policy == SCHED_SHORT)
 		goto fork_out;
 	/* HW2 end */

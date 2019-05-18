@@ -219,8 +219,9 @@ asmlinkage long sys_setpriority(int which, int who, int niceval)
 			error = -EPERM;
 			continue;
 		}
-		
+
 		/* HW2 */
+		// Task with SCHED_SHORT policy cannot change priority
 		if (p->policy == SCHED_SHORT) {
 			error = -EPERM;
 			continue;
