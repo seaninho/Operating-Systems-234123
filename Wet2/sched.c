@@ -784,9 +784,7 @@ void scheduler_tick(int user_tick, int system)
 
 	/* HW2 */
 	if (p->policy == SCHED_SHORT) {
-		// printk("process %d : policy is : %d, time slice is : %lu\n", p->pid, p->policy, p->time_slice*1000/HZ);
 		if (!--p->time_slice) {
-			printk("process time slice is done. Scheduling is now SCHED_OTHER \n");
 			/* process goes back to SCHED_OTHER policy */
 			dequeue_task(p, rq->active_short);
 			p->policy = SCHED_OTHER;
@@ -887,6 +885,7 @@ pick_next_task:
 
 	array = rq->active;
 	/* HW2 */
+	// We switch arrays in case both active & active_short are empty
 	if (unlikely(!array->nr_active) && !rq->active_short->nr_active) {
 		/*
 		 * Switch the active and expired arrays.
@@ -900,6 +899,7 @@ pick_next_task:
 	idx = sched_find_first_bit(array->bitmap);
 
 	/* HW2 */
+	// We pick a SCHED_SHORT task in case there are no RT tasks left in active & active_short is not empty
 	if (idx > 99 && rq->active_short->nr_active) {
 		array = rq->active_short;
 		idx = sched_find_first_bit(array->bitmap);
@@ -1093,6 +1093,7 @@ void set_user_nice(task_t *p, long nice)
 		return;
 
 	/* HW2 */
+	// Task with SCHED_SHORT policy cannot change nice value
 	if (p->policy == SCHED_SHORT)
 		return;
 	/* HW2 end */
@@ -1143,6 +1144,7 @@ asmlinkage long sys_nice(int increment)
 	 */
 
 	/* HW2 */
+	// Task with SCHED_SHORT policy cannot change nice value
 	if (current->policy == SCHED_SHORT)
 		return -EPERM;
 	/* HW2 end */
@@ -1246,9 +1248,11 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	 */
 	retval = -EINVAL;
 	/* HW2 */
+	// Ignoring in case task is SCHED_SHORT
 	if (policy != SCHED_SHORT && (lp.sched_priority < 0 || lp.sched_priority > MAX_USER_RT_PRIO-1))
 		goto out_unlock;
 	/* HW2 */
+	// Ignoring in case task is SCHED_SHORT
 	if (policy != SCHED_SHORT && ((policy == SCHED_OTHER) != (lp.sched_priority == 0)))
 		goto out_unlock;
 
@@ -1261,22 +1265,21 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 		goto out_unlock;
 
 	/* HW2 */
+	// Task with SCHED_SHORT policy cannot change its values
 	if (p->policy == SCHED_SHORT) {
-		// printk("process %d is SCHED_SHORT and cannot be changed!\n", pid);
 		goto out_unlock;
 	}
-
+	// Task with scheduling policy that isn't SCHED_OTHER cannot be changed to SCHED_SHORT
 	if (p->policy != SCHED_OTHER && policy == SCHED_SHORT) {
 		goto out_unlock;
 	}
 
 	retval = -EINVAL;
+	// Validating values
 	if (policy == SCHED_SHORT && (lp.requested_time < 1 || lp.requested_time > 3000 ||
 		lp.sched_short_prio < 0 || lp.sched_short_prio > 139))  {
 		goto out_unlock;
 	}
-
-	// printk("process %d : policy is : %d,  policy to be sched with : %d\n", pid, p->policy, policy);
 	/* HW2 end */
 
 	array = p->array;
@@ -1287,6 +1290,7 @@ static int setscheduler(pid_t pid, int policy, struct sched_param *param)
 	p->rt_priority = lp.sched_priority;
 
 	/* HW2 */
+	// Priority is calculated differently for each scheduling policy
 	if (policy != SCHED_SHORT) {
 		if (policy != SCHED_OTHER)
 			p->prio = MAX_USER_RT_PRIO-1 - p->rt_priority;
@@ -1311,6 +1315,14 @@ out_unlock_tasklist:
 	read_unlock_irq(&tasklist_lock);
 
 out_nounlock:
+
+	/* HW2 */
+	if (p) {
+		// In case need_resched flag is on, the newly SCHED_SHORT task gets the CPU immediately
+		if (p->need_resched)
+			schedule();
+	}
+	/* HW2 end */
 	return retval;
 }
 
@@ -1484,6 +1496,7 @@ asmlinkage long sys_sched_yield(void)
 	int i;
 
 	/* HW2 */
+	// Task with SCHED_SHORT policy acts similar to RT task
 	if (unlikely(rt_task(current)) || current->policy == SCHED_SHORT) {
 		list_del(&current->run_list);
 		list_add_tail(&current->run_list, array->queue + current->prio);
@@ -2023,7 +2036,7 @@ int ll_copy_from_user(void *to, const void *from_user, unsigned long len)
 
 
 
-/////////////////////////////HW2/////////////////////////////
+/////////////////////////////HW2 System Calls/////////////////////////////
 
 int sys_is_short(pid_t pid) {
 
@@ -2087,7 +2100,7 @@ out_total:
 	return total;
 }
 
-/////////////////////////////HW2 end/////////////////////////////
+/////////////////////////////HW2 System Calls end/////////////////////////////
 
 
 #ifdef CONFIG_LOLAT_SYSCTL

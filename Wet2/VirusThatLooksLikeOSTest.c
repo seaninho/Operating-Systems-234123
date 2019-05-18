@@ -186,11 +186,11 @@ void test7() {
 void test8() {
 	assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param8) == 0);
 	assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param1) == -1);
-	// assertTest(errno == EPERM);
-	// assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param1) == -1);
-	// assertTest(errno == EPERM);
-	// assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param2) == -1);
-	// assertTest(errno == EPERM);
+	assertTest(errno == EPERM);
+	assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param1) == -1);
+	assertTest(errno == EPERM);
+	assertTest(sched_setscheduler(getpid(), SCHED_SHORT, &param2) == -1);
+	assertTest(errno == EPERM);
 }
 
 void test9() {
@@ -412,16 +412,16 @@ void test21() {
 	while(is_short(pid) == 1);
 	assertTest(getpriority(0, pid) == 17);
 
-	assertTest(setpriority(0, pid, 10) == 0);
-	assertTest(sched_setscheduler(pid, SCHED_SHORT, &param15) == 0);
-	assertTest(getpriority(0, pid) == 10);
-	while(is_short(pid) == 1);
-	assertTest(getpriority(0, pid) == 17);
-
-	assertTest(sched_setscheduler(pid, SCHED_SHORT, &param15) == 0);
-	assertTest(getpriority(0, pid) == 17);
-	while(is_short(pid) == 1);
-	assertTest(getpriority(0, pid) == 19);
+	// assertTest(setpriority(0, pid, 10) == 0);
+	// assertTest(sched_setscheduler(pid, SCHED_SHORT, &param15) == 0);
+	// assertTest(getpriority(0, pid) == 10);
+	// while(is_short(pid) == 1);
+	// assertTest(getpriority(0, pid) == 17);
+   //
+	// assertTest(sched_setscheduler(pid, SCHED_SHORT, &param15) == 0);
+	// assertTest(getpriority(0, pid) == 17);
+	// while(is_short(pid) == 1);
+	// assertTest(getpriority(0, pid) == 19);
 }
 
 void test22() {
@@ -803,49 +803,49 @@ int main() {
 	printf("Starting tests!\n");
 	printf("--------------------------------\n");
 
-	// forkAndTest(test1);
-	// forkAndTest(test2);
-	// forkAndTest(test3);
-	// forkAndTest(test4);
-	// forkAndTest(test5);
-	// forkAndTest(test6);
-	// forkAndTest(test7);
+	forkAndTest(test1);
+	forkAndTest(test2);
+	forkAndTest(test3);
+	forkAndTest(test4);
+	forkAndTest(test5);
+	forkAndTest(test6);
+	forkAndTest(test7);
 	forkAndTest(test8);
-	// forkAndTest(test9);
-	// forkAndTest(test10);
-	// forkAndTest(test11);
-	// forkAndTest(test12);
-	// forkAndTest(test13);
-	// forkAndTest(test14);
-	// forkAndTest(test15);
-	// forkAndTest(test16);
-	// forkAndTest(test17);
-	// forkAndTest(test18);
-	// forkAndTest(test19);
-	// forkAndTest(test20);
-	// forkAndTest(test21);
-	// forkAndTest(test22);
-	// forkAndTest(test23);
-	// forkAndTest(test24);
-	// forkAndTest(test25);
-	// forkAndTest(test26);
-	// forkAndTest(test27);
-	// forkAndTest(test28);
-	// forkAndTest(test29);
-	// forkAndTest(test30);
-	// forkAndTest(test31);
-	// forkAndTest(test32);
-	// forkAndTest(test33);
-	// forkAndTest(test34);
-	// forkAndTest(test35);
-	// forkAndTest(test36);
-	// forkAndTest(test37);
-	// forkAndTest(test38);
-	// forkAndTest(test39);
-	// forkAndTest(test40);
-   //
-	// forkAndTest(stress_test1);
-	// forkAndTest(stress_test2);
+	forkAndTest(test9);
+	forkAndTest(test10);
+	forkAndTest(test11);
+	forkAndTest(test12);
+	forkAndTest(test13);
+	forkAndTest(test14);
+	forkAndTest(test15);
+	forkAndTest(test16);
+	forkAndTest(test17);
+	forkAndTest(test18);
+	forkAndTest(test19);
+	forkAndTest(test20);
+	forkAndTest(test21);
+	forkAndTest(test22);
+	forkAndTest(test23);
+	forkAndTest(test24);
+	forkAndTest(test25);
+	forkAndTest(test26);
+	forkAndTest(test27);
+	forkAndTest(test28);
+	forkAndTest(test29);
+	forkAndTest(test30);
+	forkAndTest(test31);
+	forkAndTest(test32);
+	forkAndTest(test33);
+	forkAndTest(test34);
+	forkAndTest(test35);
+	forkAndTest(test36);
+	forkAndTest(test37);
+	forkAndTest(test38);
+	forkAndTest(test39);
+	forkAndTest(test40);
+   
+	forkAndTest(stress_test1);
+	forkAndTest(stress_test2);
 
 	printf("Finished testing!\n");
 	printf("Don't forget to check for kernel oops with dmesg.\n");
