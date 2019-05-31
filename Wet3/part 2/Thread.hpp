@@ -14,7 +14,7 @@ public:
 	// Creates the internal thread via pthread_create 
 	bool start()
 	{
-		return pthread_create(&m_thread, NULL, entry_func, NULL);
+		return pthread_create(&m_thread, NULL, entry_func, (void*)this );
 	}
 
 	// Will not return until the internal thread has exited. 
@@ -27,6 +27,9 @@ public:
 	uint thread_id()
 	{
 		return m_thread_id; 
+	}
+	int cancel() {
+		return pthread_cancel(m_thread);
 	}
 protected:
 	// Implement this method in your subclass with the code you want your thread to run. 
