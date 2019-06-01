@@ -22,6 +22,8 @@ struct tile_record {
 	double tile_compute_time; // Compute time for the tile
 	uint thread_id; // The thread responsible for the compute 
 };
+
+
 /*--------------------------------------------------------------------------------
 									Class Declaration
 --------------------------------------------------------------------------------*/
@@ -55,14 +57,15 @@ protected: // All members here are protected, instead of private for testing pur
 	bool print_on; // Allows the printing of the board. Turn this off when you are checking performance (Dry 3, last question)
 	
 private:
-	PCQueue<vector<string>> jobs;
+	PCQueue<job> jobs;
 	string filename ;
 	vector<string> *game_matrix;
 	vector<string> *next_matrix;
-	vector<string> fields;
 	uint lines;
 	uint cols;
 	uint lines_for_thread;
 	uint total_t_finish;
+	uint cur_gen_num;
+	pthread_mutex_t m;
 };
 #endif

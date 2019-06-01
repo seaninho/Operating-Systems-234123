@@ -45,6 +45,11 @@ using std::endl;
 typedef unsigned int uint;
 typedef vector<vector<bool>> bool_mat; // Use this as your Game Field 
 
+typedef struct job {
+	uint original_start_row;
+	uint total_rows;
+} job;
+
 /*--------------------------------------------------------------------------------
 								  Defines & Macros
 --------------------------------------------------------------------------------*/

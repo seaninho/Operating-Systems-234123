@@ -16,6 +16,8 @@ Game::Game(game_params param)
 	filename = param.filename;
 	lines_for_thread = lines / m_thread_num;
 	total_t_finish = 0;
+	pthread_mutex_init(&m, NULL);
+	cur_gen_num = 0;
 }
 
 Game::~Game() {}
@@ -49,18 +51,15 @@ uint Game::thread_num() const {
 
 void Game::_init_game() {
 
-	cout << "start init" << endl;
 	// Create game fields - Consider using utils:read_file, utils::split
 	game_matrix = new vector<string>(utils::read_lines(filename));
 	next_matrix = new vector<string>(utils::read_lines(filename));
-	string str = utils::vector_to_string(*game_matrix);
-	fields = utils::split(str, '\n');
 
 
 	// Create & Start threads
 	ThreadForGame* t;
 	for (uint i = 0; i < m_thread_num; i++) {
-		t = new ThreadForGame(i, &jobs, game_matrix,next_matrix,lines_for_thread,cols,lines, &total_t_finish);
+		t = new ThreadForGame(i, &jobs, game_matrix,next_matrix,&m,cols,lines, &total_t_finish,&m_gen_num,&cur_gen_num);
 		m_threadpool.push_back(t);
 		t->start();
 	}
@@ -69,43 +68,48 @@ void Game::_init_game() {
 }
 
 void Game::_step(uint curr_gen) {
-	cout << "start step " << curr_gen << endl;
+	
+	uint i, total_row;
+	cur_gen_num = curr_gen;
 
-	// Push jobs to queue
-	uint j , i, rem;
-	string s;
+	//creat the work for each thred
+	for (i = 0; i < m_thread_num; i++) {	
+		total_row = lines_for_thread;
+		//if this is the lest thread we need to add the remeinder
+		if (i == m_thread_num - 1) {
+			total_row += lines - (m_thread_num * lines_for_thread);
+		}
 
-	for (i = 0; i < m_thread_num; i++) {
-		jobs.push(*game_matrix);
-		cout << "push new game_matrix  " << curr_gen << endl;
+		//Push job to the queue
+		job new_job ;
+		new_job.original_start_row = i* lines_for_thread;
+		new_job.total_rows = total_row;
+		jobs.push(new_job);	
 	}
 
-	cout << "Wait for the workers to finish calculating" << endl;
 
 	// Wait for the workers to finish calculating 
-	while (total_t_finish < m_thread_num) {}
-	cout << "workers finish calculating" << endl;
+	while (total_t_finish != m_thread_num) {}
 
 	// Swap pointers between current and next field 
-	game_matrix = next_matrix;
+	*game_matrix = *next_matrix;
 
-
+	total_t_finish = 0;
 	// NOTE: Threads must not be started here - doing so will lead to a heavy penalty in your grade 
 
-	cout << "finish step " << curr_gen << endl;
-	total_t_finish = 0;
-	string str = utils::vector_to_string(*game_matrix);
-	fields = utils::split(str, '\n');
 }
 
 void Game::_destroy_game(){
-	// Destroys board and frees all threads and resources 
+	// Destroys board and frees all threads and resources
 	// Not implemented in the Game's destructor for testing purposes. 
 	// All threads must be joined here
-	for (uint i = 0; i < m_thread_num; ++i) {
-		m_threadpool[i]->cancel();
+	for (uint i = 0; i < m_thread_num; i++) {
         m_threadpool[i]->join();
+		delete (m_threadpool[i]);
     }
+	delete game_matrix;
+	delete next_matrix;
+	pthread_mutex_destroy(&m);
 }
 
 /*--------------------------------------------------------------------------------

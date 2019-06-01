@@ -28,9 +28,7 @@ public:
 	{
 		return m_thread_id; 
 	}
-	int cancel() {
-		return pthread_cancel(m_thread);
-	}
+
 protected:
 	// Implement this method in your subclass with the code you want your thread to run. 
 	virtual void thread_workload() = 0;
