@@ -50,6 +50,11 @@ typedef struct job {
 	uint total_rows;
 } job;
 
+typedef struct tile_record {
+	double tile_compute_time; // Compute time for the tile
+	uint thread_id; // The thread responsible for the compute 
+} tile_record ;
+
 /*--------------------------------------------------------------------------------
 								  Defines & Macros
 --------------------------------------------------------------------------------*/

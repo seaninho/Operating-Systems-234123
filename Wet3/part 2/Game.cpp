@@ -59,7 +59,7 @@ void Game::_init_game() {
 	// Create & Start threads
 	ThreadForGame* t;
 	for (uint i = 0; i < m_thread_num; i++) {
-		t = new ThreadForGame(i, &jobs, game_matrix,next_matrix,&m,cols,lines, &total_t_finish,&m_gen_num,&cur_gen_num);
+		t = new ThreadForGame(i, &jobs, game_matrix,next_matrix,&m,cols,lines, &total_t_finish,&m_gen_num,&cur_gen_num,&m_tile_hist);
 		m_threadpool.push_back(t);
 		t->start();
 	}
