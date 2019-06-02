@@ -59,14 +59,14 @@ public:
 			}
 			auto tile_end = std::chrono::system_clock::now(); // stop timer
 
-			//create and push tile_record to m_tile_hist 
+			//create tile_record 
 			tile_record *record = new tile_record();
 			record->thread_id = m_thread_id;
 			record->tile_compute_time = (double)std::chrono::duration_cast<std::chrono::microseconds>(tile_end - tile_start).count();	
-			m_tile_hist->push_back(*record);
-
-			//increase total_t_finish
+			
+			//push tile_record to m_tile_hist and increase total_t_finish 
 			pthread_mutex_lock(m);
+			m_tile_hist->push_back(*record);
 			(*total_t_finish)++;
 			pthread_mutex_unlock(m);
 		
