@@ -60,18 +60,11 @@ uint utils::num_cols(const string& filename) {
 			total = curr.size();
 			break;
 		}
-			
+
 	}
 	file.close();
 	return total;
 }
-
-string utils::vector_to_string(const std::vector<std::string>& vec) {
-	string result;
-	for (auto const& s : vec) { result += s + "\n"; }
-	return result;
-}
-
 
 /*--------------------------------------------------------------------------------
 								String Extentions
@@ -103,4 +96,3 @@ string operator*(string str, size_t n)
 {
 	return repeat(move(str), n);
 }
-

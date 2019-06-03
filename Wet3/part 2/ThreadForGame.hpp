@@ -40,16 +40,18 @@ public:
 			job new_job = jobs->pop();
 			int original_row = new_job.original_start_row;
 			int total_rows = new_job.total_rows;
-		
+			int num_of_live_neighbors = 0;
+
 			//execute job
 			auto tile_start = std::chrono::system_clock::now(); //start timer
 			for (int row = 0; row < total_rows; row++) {
 				for (int col = 0; col < cols; col += 2) {
-					if ((*game_matrix)[original_row + row][col] == '0' && num_live_neighbors(original_row + row, col) == 3) {
+					num_of_live_neighbors = num_live_neighbors(original_row + row, col);
+					if ((*game_matrix)[original_row + row][col] == '0' && num_of_live_neighbors == 3) {
 						(*next_matrix)[original_row + row][col] = '1';
 					}
 					else if ((*game_matrix)[original_row + row][col] == '1' &&
-						(num_live_neighbors(original_row + row, col) == 3 || num_live_neighbors(original_row + row, col) == 2)) {
+						(num_of_live_neighbors == 3 || num_of_live_neighbors == 2)) {
 						(*next_matrix)[original_row + row][col] = '1';
 					}
 					else {
@@ -59,17 +61,17 @@ public:
 			}
 			auto tile_end = std::chrono::system_clock::now(); // stop timer
 
-			//create tile_record 
+			//create tile_record
 			tile_record *record = new tile_record();
 			record->thread_id = m_thread_id;
-			record->tile_compute_time = (double)std::chrono::duration_cast<std::chrono::microseconds>(tile_end - tile_start).count();	
-			
-			//push tile_record to m_tile_hist and increase total_t_finish 
+			record->tile_compute_time = (double)std::chrono::duration_cast<std::chrono::microseconds>(tile_end - tile_start).count();
+
+			//push tile_record to m_tile_hist and increase total_t_finish
 			pthread_mutex_lock(m);
 			m_tile_hist->push_back(*record);
 			(*total_t_finish)++;
 			pthread_mutex_unlock(m);
-		
+
 		}
 		return;
 	}
@@ -101,4 +103,3 @@ private:
 };
 
 #endif
-
