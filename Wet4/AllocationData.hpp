@@ -1,6 +1,6 @@
 class AllocationData {
 public:
-	AllocationData(uint size) {
+	AllocationData(size_t size) {
 		_is_free = false;
 		_requested_size = size;
 		_effective_allocation = NULL;
@@ -9,7 +9,7 @@ public:
 	void set_is_free(bool free){
 		_is_free = free;
 	}
-	void set_requested_size(uint size){
+	void set_requested_size(size_t size){
 		_requested_size = size;
 	}
 	void set_effective_allocation(void *addr){
@@ -19,7 +19,7 @@ public:
 	bool is_free(){
 		return _is_free;
 	}
-	uint get_requested_size(){
+	size_t get_requested_size(){
 		return _requested_size;
 	}
 	void* get_effective_allocation(){
@@ -27,7 +27,7 @@ public:
 	}
 	
 private:
-   bool _is_free;
-   uint _requested_size;
-   void *_effective_allocation;
+	bool _is_free;
+	size_t _requested_size;
+	void *_effective_allocation;
 }

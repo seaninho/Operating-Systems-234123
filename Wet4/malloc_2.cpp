@@ -14,13 +14,19 @@ void* malloc(size_t size) {
 		return NULL;
   
 	/*Search for enough space in released structures*/
-	
+	AllocationData temp = NULL;
 	list<AllocationData>::iterator it; 
     for(it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it){
-		if(it.is_free() && it.get_requested_size()>=size){
-			it.set_is_free(false);
-			return it.get_effective_allocation();
+		if(it->is_free() && it->get_requested_size()>=size){
+			if(!temp)
+				temp = *it;
+			else if(it->get_requested_size() < temp.get_requested_size())
+				temp = *it;
 		}	
+	}
+	if(temp){
+		temp.set_is_free(false);
+		return temp.get_effective_allocation();
 	}
   
 	/*Not enough space was found in the released structers*/
