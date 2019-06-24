@@ -3,31 +3,35 @@ public:
 	AllocationData(size_t size) {
 		_is_free = false;
 		_requested_size = size;
-		_effective_allocation = NULL;
+		_allocation_addr = NULL;
 	}
 
-	void set_is_free(bool free){
+	void set_is_free(bool free) {
 		_is_free = free;
 	}
-	void set_requested_size(size_t size){
+
+	void set_requested_size(size_t size) {
 		_requested_size = size;
 	}
-	void set_effective_allocation(void *addr){
-		_effective_allocation = addr;
+
+	void set_allocation_addr(void *addr) {
+		_allocation_addr = addr;
 	}
 
-	bool is_free(){
+	bool is_free() {
 		return _is_free;
 	}
-	size_t get_requested_size(){
+
+	size_t get_requested_size() {
 		return _requested_size;
 	}
-	void* get_effective_allocation(){
-		return _effective_allocation;
+
+	void* get_allocation_addr() {
+		return _allocation_addr;
 	}
-	
+
 private:
 	bool _is_free;
 	size_t _requested_size;
-	void *_effective_allocation;
+	void* _allocation_addr;
 }
