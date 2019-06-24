@@ -1,4 +1,4 @@
-#include <cstdlib.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define MIN_SIZE 0

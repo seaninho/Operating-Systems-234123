@@ -34,4 +34,4 @@ private:
 	bool _is_free;
 	size_t _requested_size;
 	void* _allocation_addr;
-}
+};

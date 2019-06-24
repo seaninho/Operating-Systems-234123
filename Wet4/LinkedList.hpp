@@ -13,17 +13,27 @@ public:
 		Node* node_ptr;
 
 	public:
-		Iterator (Node* node_ptr) : node_ptr(node_ptr) {}
+      Iterator() : node_ptr(NULL) {}
 
-		Iterator& operator= (const Iterator& Iterator ) {
-			if(node_ptr == NULL) {
+		Iterator(Node* node_ptr) : node_ptr(node_ptr) {}
+
+      T* operator->() const {
+         return &node_ptr->data;
+      }
+
+      T& operator*() const {
+         return node_ptr->data;
+      }
+
+		Iterator& operator=(const Iterator& Iterator ) {
+			if (node_ptr == NULL) {
             return *this;
          }
 			node_ptr = Iterator.node_ptr;
 			return *this;
 		}
 
-		bool operator== (const Iterator& Iterator) {
+		bool operator==(const Iterator& Iterator) {
 			if (node_ptr == NULL && Iterator.node_ptr == NULL) {
             return true;
          }
@@ -33,7 +43,7 @@ public:
 			return node_ptr == Iterator.node_ptr;
 		}
 
-		bool operator!= (const Iterator& Iterator) {
+		bool operator!=(const Iterator& Iterator) {
 			return !(*this == Iterator);
 		}
 

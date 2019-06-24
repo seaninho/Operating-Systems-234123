@@ -1,5 +1,6 @@
-#include <cstdlib.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <cstring>
 #include "LinkedList.hpp"
 #include "AllocationData.hpp"
 
@@ -15,19 +16,19 @@ void* malloc(size_t size) {
 	AllocationData* meta_data = NULL;
 
 	// First, we search for freed space in our global list
-	LinkedList<AllocationData>::iterator it;
+	LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->is_free() && it->get_requested_size() >= size) {
       	if (!meta_data)
       		*meta_data = *it;
-      	else if (it->get_requested_size() < temp.get_requested_size())
+      	else if (it->get_requested_size() < meta_data->get_requested_size())
       		*meta_data = *it;
       }
 	}
 
 	if (meta_data) {
-		*meta_data.set_is_free(false);
-		return *meta_data.get_allocation_addr();
+		meta_data->set_is_free(false);
+		return meta_data->get_allocation_addr();
 	}
 
 	// Not enough freed space was found, so we allocate new space
@@ -38,7 +39,7 @@ void* malloc(size_t size) {
    }
 
 	// Allocating requested_size bytes
-	void *allocation_addr = sbrk(size);
+	void* allocation_addr = sbrk(size);
 	if (allocation_addr == (void*)(-1)) {
       sbrk(-sizeof(AllocationData));
       return NULL;
@@ -49,7 +50,11 @@ void* malloc(size_t size) {
 	meta_data->set_allocation_addr(allocation_addr);
 
    // Adding the allocation meta-data to the allocation history list
-	allocationsHistory.add(meta_data);
+	if (!allocationsHistory.add(*meta_data)) {
+      sbrk(-sizeof(size));
+      sbrk(-sizeof(AllocationData));
+      return NULL;
+   }
 
 	return allocation_addr;
 }
@@ -72,7 +77,7 @@ void free(void* p) {
    }
 
    // We search for p in our global list
-	LinkedList<AllocationData>::iterator it;
+	LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->get_allocation_addr() == p) {
          // If 'p' was already released, we ignore the action
@@ -91,7 +96,7 @@ void free(void* p) {
 
 void* realloc(void* oldp, size_t size) {
    // First, we allocate a new space (possibly reused allocation)
-   void* allocation_addr = malloc(num * size);
+   void* allocation_addr = malloc(size);
    if (!allocation_addr) {
       return NULL;
    }
@@ -112,7 +117,7 @@ void* realloc(void* oldp, size_t size) {
 
 size_t _num_free_blocks() {
    size_t num = 0;
-   LinkedList<AllocationData>::iterator it;
+   LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->is_free()) {
          num++;
@@ -123,7 +128,7 @@ size_t _num_free_blocks() {
 
 size_t _num_free_bytes() {
    size_t num = 0;
-   LinkedList<AllocationData>::iterator it;
+   LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->is_free()) {
          num += it->get_requested_size();
@@ -134,7 +139,7 @@ size_t _num_free_bytes() {
 
 size_t _num_allocated_blocks() {
    size_t num = 0;
-   LinkedList<AllocationData>::iterator it;
+   LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       num++;
    }
@@ -143,7 +148,7 @@ size_t _num_allocated_blocks() {
 
 size_t _num_allocated_bytes() {
    size_t num = 0;
-   LinkedList<AllocationData>::iterator it;
+   LinkedList<AllocationData>::Iterator it;
    for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       num += it->get_requested_size();
    }
