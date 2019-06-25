@@ -1,10 +1,5 @@
 class AllocationData {
 public:
-	AllocationData(size_t size) {
-		_is_free = false;
-		_requested_size = size;
-		_allocation_addr = NULL;
-	}
 
 	void set_is_free(bool free) {
 		_is_free = free;
@@ -18,6 +13,14 @@ public:
 		_allocation_addr = addr;
 	}
 
+   void set_next(AllocationData* next) {
+      _next = next;
+   }
+
+   void set_prev(AllocationData* prev) {
+      _prev = prev;
+   }
+
 	bool is_free() {
 		return _is_free;
 	}
@@ -30,8 +33,18 @@ public:
 		return _allocation_addr;
 	}
 
+   AllocationData* get_next() {
+      return _next;
+   }
+
+   AllocationData* get_prev() {
+      return _prev;
+   }
+
 private:
 	bool _is_free;
 	size_t _requested_size;
 	void* _allocation_addr;
+   AllocationData* _next;
+   AllocationData* _prev;
 };
