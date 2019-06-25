@@ -5,6 +5,10 @@ public:
 		_is_free = free;
 	}
 
+   void set_original_size(size_t size) {
+		_original_size = size;
+	}
+
 	void set_requested_size(size_t size) {
 		_requested_size = size;
 	}
@@ -25,6 +29,10 @@ public:
 		return _is_free;
 	}
 
+   size_t get_original_size() {
+		return _original_size;
+	}
+
 	size_t get_requested_size() {
 		return _requested_size;
 	}
@@ -43,6 +51,7 @@ public:
 
 private:
 	bool _is_free;
+   size_t _original_size;
 	size_t _requested_size;
 	void* _allocation_addr;
    AllocationData* _next;
