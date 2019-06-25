@@ -4,6 +4,8 @@
 #include "LinkedList.hpp"
 #include "AllocationData.hpp"
 
+#include <cstdio>
+
 #define MIN_SIZE 0
 #define MAX_SIZE 100000000
 
@@ -14,16 +16,15 @@ void* malloc(size_t size) {
 		return NULL;
 
 	AllocationData* meta_data = NULL;
-
+	
 	// First, we search for freed space in our global list
-	LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
-      if (it->is_free() && it->get_requested_size() >= size) {
-      	if (!meta_data)
-      		*meta_data = *it;
-      	else if (it->get_requested_size() < meta_data->get_requested_size())
-      		*meta_data = *it;
-      }
+    for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+		if (it->is_free() && it->get_requested_size() >= size) {
+			if (!meta_data)
+				meta_data = &(*it);
+			else if (it->get_requested_size() < meta_data->get_requested_size())
+				meta_data = &(*it); 
+		}
 	}
 
 	if (meta_data) {
@@ -35,29 +36,29 @@ void* malloc(size_t size) {
 	// Allocating meta_data
 	meta_data = (AllocationData*)sbrk(sizeof(AllocationData));
 	if (meta_data == (void*)(-1)) {
-      return NULL;
-   }
-
+		return NULL;
+	}
+	
 	// Allocating requested_size bytes
 	void* allocation_addr = sbrk(size);
 	if (allocation_addr == (void*)(-1)) {
-      sbrk(-sizeof(AllocationData));
-      return NULL;
-   }
-
+		sbrk(-sizeof(AllocationData));
+		return NULL;
+    }
+	
 	meta_data->set_is_free(false);
 	meta_data->set_requested_size(size);
 	meta_data->set_allocation_addr(allocation_addr);
 
    // Adding the allocation meta-data to the allocation history list
 	if (!allocationsHistory.add(*meta_data)) {
-      sbrk(-sizeof(size));
-      sbrk(-sizeof(AllocationData));
-      return NULL;
-   }
-
+		sbrk(-sizeof(size));
+		sbrk(-sizeof(AllocationData));
+		return NULL;
+	}
 	return allocation_addr;
 }
+
 
 void* calloc(size_t num, size_t size) {
    // First, we allocate a new space (possibly reused allocation)
@@ -77,8 +78,7 @@ void free(void* p) {
    }
 
    // We search for p in our global list
-	LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+   for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->get_allocation_addr() == p) {
          // If 'p' was already released, we ignore the action
       	if (it->is_free()) {
@@ -117,8 +117,7 @@ void* realloc(void* oldp, size_t size) {
 
 size_t _num_free_blocks() {
    size_t num = 0;
-   LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+   for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->is_free()) {
          num++;
       }
@@ -128,8 +127,7 @@ size_t _num_free_blocks() {
 
 size_t _num_free_bytes() {
    size_t num = 0;
-   LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+   for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       if (it->is_free()) {
          num += it->get_requested_size();
       }
@@ -139,8 +137,7 @@ size_t _num_free_bytes() {
 
 size_t _num_allocated_blocks() {
    size_t num = 0;
-   LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+   for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       num++;
    }
    return num;
@@ -148,8 +145,7 @@ size_t _num_allocated_blocks() {
 
 size_t _num_allocated_bytes() {
    size_t num = 0;
-   LinkedList<AllocationData>::Iterator it;
-   for (it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
+   for (LinkedList<AllocationData>::Iterator it = allocationsHistory.begin(); it != allocationsHistory.end(); ++it) {
       num += it->get_requested_size();
    }
    return num;
