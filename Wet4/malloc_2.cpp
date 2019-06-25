@@ -15,47 +15,49 @@ void* malloc(size_t size) {
    return NULL;
 
    AllocationData* meta_data = NULL;
-   std::cout << "1" << std::endl;
+   AllocationData* it = allocHistory;
+
    // First, we search for freed space in our global list
-   while (!allocHistory) {
-      if (allocHistory->is_free() && allocHistory->get_requested_size() >= size) {
-         if (!meta_data) {
-            meta_data = allocHistory;
-         }
-         else if (allocHistory->get_requested_size() < meta_data->get_requested_size()) {
-            meta_data = allocHistory;
+   if (allocHistory) {
+      for (; !it; it = it->get_next()) {
+         if (it->is_free() && it->get_requested_size() >= size) {
+            if (!meta_data) {
+               meta_data = it;
+            }
+            else if (it->get_requested_size() < meta_data->get_requested_size()) {
+               meta_data = it;
+            }
          }
       }
-      allocHistory = allocHistory->get_next();
+
+      if (meta_data) {
+         meta_data->set_is_free(false);
+         meta_data->set_requested_size(size);
+         return meta_data->get_allocation_addr();
+      }
    }
-   std::cout << "2" << std::endl;
-   if (meta_data) {
-      meta_data->set_is_free(false);
-      meta_data->set_requested_size(size);
-      return meta_data->get_allocation_addr();
-   }
-   std::cout << "3" << std::endl;
+
    // Not enough freed space was found, so we allocate new space
    // Allocating meta_data
    meta_data = (AllocationData*)sbrk(sizeof(AllocationData));
    if (meta_data == (void*)(-1)) {
       return NULL;
    }
-   std::cout << "4" << std::endl;
+
    // Allocating requested_size bytes
    void* allocation_addr = sbrk(size);
    if (allocation_addr == (void*)(-1)) {
       sbrk(-sizeof(AllocationData));
    return NULL;
    }
-   std::cout << "5" << std::endl;
+
    // Setting up the meta data
    meta_data->set_is_free(false);
    meta_data->set_requested_size(size);
    meta_data->set_allocation_addr(allocation_addr);
    meta_data->set_next(NULL);
    meta_data->set_prev(NULL);
-   std::cout << "6" << std::endl;
+
    // Adding the allocation meta-data to the allocation history list
    // For the first allocation
    if (!allocHistory) {
@@ -63,10 +65,10 @@ void* malloc(size_t size) {
    }
    else {
       // In case there are others
-      meta_data->set_prev(allocHistory);
-      allocHistory->set_next(meta_data);
+      meta_data->set_prev(it);
+      it->set_next(meta_data);
    }
-   
+
    return allocation_addr;
    }
 
@@ -89,15 +91,15 @@ void free(void* p) {
    }
 
    // We search for p in our global list
-   while (!allocHistory) {
-      if (allocHistory->get_allocation_addr() == p) {
+   for (AllocationData* it = allocHistory; !it; it = it->get_next()) {
+      if (it->get_allocation_addr() == p) {
          // If 'p' was already released, we ignore the action
-      	if (allocHistory->is_free()) {
+      	if (it->is_free()) {
             return;
          }
          // If not, we free the allocated block
          else {
-            allocHistory->set_is_free(true);
+            it->set_is_free(true);
             return;
          }
       }
@@ -128,40 +130,46 @@ void* realloc(void* oldp, size_t size) {
 
 size_t _num_free_blocks() {
    size_t num = 0;
-   while (!allocHistory) {
-      if (allocHistory->is_free()) {
-         num++;
+   if (allocHistory) {
+      for (AllocationData* it = allocHistory; !it; it = it->get_next()) {
+         if (it->is_free()) {
+            num++;
+         }
       }
-      allocHistory = allocHistory->get_next();
    }
    return num;
 }
 
 size_t _num_free_bytes() {
    size_t num = 0;
-   while (!allocHistory) {
-      if (allocHistory->is_free()) {
-         num += allocHistory->get_requested_size();
+   if (allocHistory) {
+      for (AllocationData* it = allocHistory; !it; it = it->get_next()) {
+         if (it->is_free()) {
+            num += it->get_requested_size();
+         }
       }
-      allocHistory = allocHistory->get_next();
    }
    return num;
 }
 
 size_t _num_allocated_blocks() {
    size_t num = 0;
-   while (!allocHistory) {
-      num++;
-      allocHistory = allocHistory->get_next();
+   if (allocHistory) {
+      std::cout << "allocHistory is not NULL" << std::endl;
+      for (AllocationData* it = allocHistory; !it; it = it->get_next()) {
+         std::cout << "counted" << std::endl;
+         num++;
+      }
    }
    return num;
 }
 
 size_t _num_allocated_bytes() {
    size_t num = 0;
-   while (!allocHistory) {
-      num += allocHistory->get_requested_size();
-      allocHistory = allocHistory->get_next();
+   if (allocHistory) {
+      for (AllocationData* it = allocHistory; !it; it = it->get_next()) {
+         num += it->get_requested_size();
+      }
    }
    return num;
 }
