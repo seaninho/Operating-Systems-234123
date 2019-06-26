@@ -20,20 +20,24 @@ size_t alignment(size_t size){
 
 void split(AllocationData* meta_data, size_t new_requested_size ){
 	size_t alignment_size_AllocationData = alignment(sizeof(AllocationData));
-	size_t size = meta_data->get_original_size() - new_requested_size - alignment_size_AllocationData;
+	size_t alignment_size = alignment(new_requested_size);
+	size_t size = meta_data->get_original_size() - alignment_size - alignment_size_AllocationData;
 
 	if(size < 128)
 		return;
 	
-	AllocationData* new_meta_data = (AllocationData*)((size_t)&meta_data + alignment_size_AllocationData + (size_t)new_requested_size);
+	AllocationData* new_meta_data = (AllocationData*)(meta_data + alignment_size_AllocationData + alignment_size);
 	new_meta_data->set_is_free(true);
-	new_meta_data->set_requested_size(size);
-	new_meta_data->set_allocation_addr((void*)((size_t)&new_meta_data + alignment_size_AllocationData) );
+	new_meta_data->set_original_size(alignment(size));
+	new_meta_data->set_allocation_addr((void*)(new_meta_data + alignment_size_AllocationData) );
 	new_meta_data->set_next(meta_data->get_next());
 	new_meta_data->set_prev(meta_data);
 	
-	meta_data->set_requested_size(new_requested_size);
 	meta_data->set_next(new_meta_data);
+	meta_data->set_original_size(alignment_size);
+	
+	if(new_meta_data->get_next())
+		(new_meta_data->get_next())->set_prev(new_meta_data); 
 }
 
 void combine(AllocationData* meta_data){
@@ -81,16 +85,16 @@ void* malloc(size_t size) {
    // First, we search for freed space in our global list
    if (allocHistory) {
       for (; it; it = it->get_next()) {
-         if (it->is_free() && it->get_original_size() >= alignment_size) {
+         if (it->is_free() && it->get_original_size() >= size) {
             meta_data = it;
             break;
          }
       }
 
       if (meta_data) {
-		 split(meta_data,alignment_size);
          meta_data->set_is_free(false);
          meta_data->set_requested_size(size);
+		 split(meta_data,size);
          return meta_data->get_allocation_addr();
       }
    }
