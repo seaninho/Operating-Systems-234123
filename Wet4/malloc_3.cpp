@@ -47,21 +47,27 @@ void combine(AllocationData* meta_data) {
 	AllocationData* adjacent_block;
 	size_t aligned_size_AllocationData = alignment(sizeof(AllocationData));
 
-	//First, if the right adjacent block is free, we need to combine both
+	// First, we check if the upper adjacent block is free. In case it is, we combine both
 	adjacent_block = meta_data->get_next();
+	// If the allocated block is the last one on the list, there is no need for combination
 	if (adjacent_block && adjacent_block->is_free()) {
-		meta_data->set_original_size( meta_data->get_original_size() + adjacent_block->get_original_size() + aligned_size_AllocationData );
+		meta_data->set_original_size(meta_data->get_original_size()
+											+ adjacent_block->get_original_size()
+											+ aligned_size_AllocationData);
 		meta_data->set_next(adjacent_block->get_next());
 
 		if (adjacent_block->get_next()) {
 			(adjacent_block->get_next())->set_prev(meta_data);
 		}
+		return;
 	}
 
-	//Now, if the left adjacent block is free, we need to combine both
+	// Now, we check if the lower adjacent block is free. In case it is, we combine both
 	adjacent_block = meta_data->get_prev();
 	if (adjacent_block && adjacent_block->is_free()) {
-		adjacent_block->set_original_size( meta_data->get_original_size() + adjacent_block->get_original_size() + aligned_size_AllocationData );
+		adjacent_block->set_original_size(meta_data->get_original_size()
+													+ adjacent_block->get_original_size()
+													+ aligned_size_AllocationData);
 		adjacent_block->set_next(meta_data->get_next());
 
 		if (meta_data->get_next()) {
