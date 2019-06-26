@@ -1,4 +1,4 @@
-// #include <stdlib.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <cstring>
 #include "AllocationData.hpp"
