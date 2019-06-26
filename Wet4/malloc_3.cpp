@@ -21,7 +21,7 @@ size_t alignment(size_t size){
 void split(AllocationData* meta_data, size_t new_requested_size ){
 	size_t alignment_size_AllocationData = alignment(sizeof(AllocationData));
 	size_t alignment_size = alignment(new_requested_size);
-	size_t size = meta_data->get_original_size() - alignment_size - alignment_size_AllocationData;
+	int size = meta_data->get_original_size() - alignment_size - alignment_size_AllocationData;
 
 	if(size < 128)
 		return;
@@ -108,20 +108,19 @@ void* malloc(size_t size) {
 		   
 		    //the wilderness chenk is free and not big enough (otherwise we would handle it in the previous for loop)
 		    if(!(it->get_next()) && it->is_free()){
-			    if ( brk(it->get_allocation_addr()) == -1 )
-				   return NULL;
-				   
-			    void* new_allocation_addr = sbrk(alignment_size);
-				if (new_allocation_addr == (void*)(-1)) {
+				
+				void* add_allocation = sbrk(alignment_size-it->get_original_size());
+				if (add_allocation == (void*)(-1)) {
 					brk((void*) it);
 					return NULL;
 				}
+
 				// Setting up the meta data
+				meta_data = it;
 			    meta_data->set_is_free(false);
 			    meta_data->set_original_size(alignment_size);
 			    meta_data->set_requested_size(size);
-			    meta_data->set_allocation_addr(new_allocation_addr);
-				return new_allocation_addr;
+				return meta_data->get_allocation_addr();
 		    }
 	    }
     }
