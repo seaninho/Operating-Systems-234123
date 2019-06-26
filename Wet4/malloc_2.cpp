@@ -21,7 +21,7 @@ void* malloc(size_t size) {
    // First, we search for freed space in our global list
    if (allocHistory) {
       for (it = allocHistory; it; it = it->get_next()) {
-         if (it->is_free() && it->get_original_size() >= size) {
+         if (it->get_original_size() >= size && it->is_free()) {
             metaData = it;
             break;
          }
@@ -135,7 +135,7 @@ void* realloc(void* oldp, size_t size) {
    }
 
    // We determine whether allocation has enough space to facilitate the new block size
-   if (size <= metaData->get_original_size()) {
+   if (metaData->get_original_size() >= size) {
       metaData->set_requested_size(size);
       return oldp;
    }

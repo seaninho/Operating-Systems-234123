@@ -6,6 +6,7 @@
 #include <iostream>
 
 #define MIN_SIZE 0
+#define MIN_SPLIT_SIZE 128
 #define MAX_SIZE 100000000
 
 
@@ -18,66 +19,66 @@ size_t alignment(size_t size) {
 	return size;
 }
 
-void split(AllocationData* meta_data, size_t new_requested_size ) {
-	size_t aligned_size_AllocationData = alignment(sizeof(AllocationData));
-	size_t aligned_size = alignment(new_requested_size);
-	int size = meta_data->get_original_size() - aligned_size - aligned_size_AllocationData;
+void split(AllocationData* metaData, size_t new_requested_size) {
+	size_t alignedSizeofAllocationData = _size_meta_data();
+	size_t alignedSize = alignment(new_requested_size);
+	size_t size = metaData->get_original_size() - alignedSize - 2 * alignedSizeofAllocationData;
 
-	if (size < 128) {
+	if (size < MIN_SPLIT_SIZE) {
 		return;
 	}
 
-	AllocationData* new_meta_data = (AllocationData*)((int)meta_data + (int)aligned_size_AllocationData + (int)aligned_size);
-	new_meta_data->set_is_free(true);
-	new_meta_data->set_original_size(alignment(size));
-	new_meta_data->set_allocation_addr((void*)((int)new_meta_data + (int)aligned_size_AllocationData) );
-	new_meta_data->set_next(meta_data->get_next());
-	new_meta_data->set_prev(meta_data);
+	AllocationData* newMatadata = (AllocationData*)(metaData + alignedSizeofAllocationData + alignedSize);
+	newMatadata->set_is_free(true);
+	newMatadata->set_original_size(alignment(size));
+	newMatadata->set_allocation_addr((void*)(newMatadata + alignedSizeofAllocationData));
+	newMatadata->set_next(metaData->get_next());
+	newMatadata->set_prev(metaData);
 
-	meta_data->set_next(new_meta_data);
-	meta_data->set_original_size(aligned_size);
+	metaData->set_next(newMatadata);
+	metaData->set_original_size(alignedSize);
 
-	if (new_meta_data->get_next()) {
-		(new_meta_data->get_next())->set_prev(new_meta_data);
+	if (newMatadata->get_next()) {
+		(newMatadata->get_next())->set_prev(newMatadata);
 	}
 
 }
 
-void combine(AllocationData* meta_data) {
+void combine(AllocationData* metaData) {
 	AllocationData* adjacent_block;
-	size_t aligned_size_AllocationData = alignment(sizeof(AllocationData));
+	size_t alignedSizeofAllocationData = alignment(sizeof(AllocationData));
 
 	// First, we check if the upper adjacent block is free. In case it is, we combine both
-	adjacent_block = meta_data->get_next();
+	adjacent_block = metaData->get_next();
 	// If the allocated block is the last one on the list, there is no need for combination
 	if (adjacent_block && adjacent_block->is_free()) {
-		meta_data->set_original_size(meta_data->get_original_size()
+		metaData->set_original_size(metaData->get_original_size()
 											+ adjacent_block->get_original_size()
-											+ aligned_size_AllocationData);
-		meta_data->set_next(adjacent_block->get_next());
+											+ alignedSizeofAllocationData);
+		metaData->set_next(adjacent_block->get_next());
 
 		if (adjacent_block->get_next()) {
-			(adjacent_block->get_next())->set_prev(meta_data);
+			(adjacent_block->get_next())->set_prev(metaData);
 		}
 		return;
 	}
 
 	// Now, we check if the lower adjacent block is free. In case it is, we combine both
-	adjacent_block = meta_data->get_prev();
+	adjacent_block = metaData->get_prev();
 	if (adjacent_block && adjacent_block->is_free()) {
-		adjacent_block->set_original_size(meta_data->get_original_size()
+		adjacent_block->set_original_size(metaData->get_original_size()
 													+ adjacent_block->get_original_size()
-													+ aligned_size_AllocationData);
-		adjacent_block->set_next(meta_data->get_next());
+													+ alignedSizeofAllocationData);
+		adjacent_block->set_next(metaData->get_next());
 
-		if (meta_data->get_next()) {
-			(meta_data->get_next())->set_prev(adjacent_block);
+		if (metaData->get_next()) {
+			(metaData->get_next())->set_prev(adjacent_block);
 		}
 	}
 }
 
 
-/* ================================== Heleper Function End ================================== */
+/* ================================== Helper Function End ================================== */
 
 AllocationData* allocHistory = NULL;
 
@@ -86,81 +87,98 @@ void* malloc(size_t size) {
       return NULL;
    }
 
-   size_t aligned_size = alignment(size);
-
-   AllocationData* meta_data = NULL;
-   AllocationData* it = allocHistory;
+   size_t alignedSize = alignment(size);
+	bool wildernessFlag = false;
+   AllocationData* metaData = NULL;
+   AllocationData* it = NULL;
 
    // First, we search for freed space in our global list
    if (allocHistory) {
-      for (; it; it = it->get_next()) {
-         if (it->is_free() && it->get_original_size() >= size) {
-            meta_data = it;
+      for (it = allocHistory; it; it = it->get_next()) {
+			// Checking if there is a big enough *free* space
+         if (it->get_original_size() >= size && it->is_free()) {
+            metaData = it;
             break;
          }
+			// Checking for wilderness option
+			if (!(it->get_next()) && it->is_free()) {
+				metaData = it;
+				if (it->get_original_size() < size) {
+					void* allocAddition = sbrk(alignedSize - it->get_original_size());
+					if (allocAddition == (void*)(-1)) {
+						sbrk(it->get_original_size() - alignedSize);
+						return NULL;
+					}
+					wildernessFlag = true;
+				}
+			}
       }
 
-      if (meta_data) {
-         meta_data->set_is_free(false);
-         meta_data->set_requested_size(size);
-		 	split(meta_data,size);
-         return meta_data->get_allocation_addr();
+      if (metaData) {
+         metaData->set_is_free(false);
+         metaData->set_requested_size(size);
+			if (wildernessFlag) {
+				metaData->set_original_size(alignedSize);
+			}
+		 	split(metaData, size);
+         return metaData->get_allocation_addr();
       }
    }
 
    //handle problem 3
-	if (allocHistory) {
-		for (it = allocHistory; it; it = it->get_next()) {
-			//if 'it' is not last and free we do nothing
-			if (it->get_next() && it->is_free()) {
-				break;
-			}
-
-			//the wilderness chenk is free and not big enough (otherwise we would handle it in the previous for loop)
-			if (!(it->get_next()) && it->is_free()) {
-
-				void* add_allocation = sbrk(aligned_size-it->get_original_size());
-				if (add_allocation == (void*)(-1)) {
-					brk((void*) it);
-					return NULL;
-				}
-
-				// Setting up the meta data
-				meta_data = it;
-				meta_data->set_is_free(false);
-				meta_data->set_original_size(aligned_size);
-				meta_data->set_requested_size(size);
-				return meta_data->get_allocation_addr();
-			}
-		}
-	}
+	// if (allocHistory) {
+	// 	for (it = allocHistory; it; it = it->get_next()) {
+	// 		//if 'it' is not last and free we do nothing
+	// 		if (it->get_next() && it->is_free()) {
+	// 			break;
+	// 		}
+	//
+	// 		//the wilderness chenk is free and not big enough
+	// 		//(otherwise we would handle it in the previous for loop)
+	// 		if (!(it->get_next()) && it->is_free()) {
+	//
+	// 			void* add_allocation = sbrk(alignedSize-it->get_original_size());
+	// 			if (add_allocation == (void*)(-1)) {
+	// 				brk((void*) it);
+	// 				return NULL;
+	// 			}
+	//
+	// 			// Setting up the meta data
+	// 			metaData = it;
+	// 			metaData->set_is_free(false);
+	// 			metaData->set_original_size(alignedSize);
+	// 			metaData->set_requested_size(size);
+	// 			return metaData->get_allocation_addr();
+	// 		}
+	// 	}
+	// }
 
    // Not enough freed space was found, so we allocate new space
-   // Allocating meta_data
-   meta_data = (AllocationData*)sbrk(alignment(sizeof(AllocationData)));
-   if (meta_data == (void*)(-1)) {
+   // Allocating Metadata
+   metaData = (AllocationData*)sbrk(alignment(sizeof(AllocationData)));
+   if (metaData == (void*)(-1)) {
       return NULL;
    }
 
    // Allocating requested_size bytes
-   void* allocation_addr = sbrk(aligned_size);
+   void* allocation_addr = sbrk(alignedSize);
    if (allocation_addr == (void*)(-1)) {
       sbrk(-sizeof(AllocationData));
 	return NULL;
    }
 
    // Setting up the meta data
-   meta_data->set_is_free(false);
-   meta_data->set_original_size(aligned_size);
-   meta_data->set_requested_size(size);
-   meta_data->set_allocation_addr(allocation_addr);
-   meta_data->set_next(NULL);
-   meta_data->set_prev(NULL);
+   metaData->set_is_free(false);
+   metaData->set_original_size(alignedSize);
+   metaData->set_requested_size(size);
+   metaData->set_allocation_addr(allocation_addr);
+   metaData->set_next(NULL);
+   metaData->set_prev(NULL);
 
    // Adding the allocation meta-data to the allocation history list
    // For the first allocation
    if (!allocHistory) {
-      allocHistory = meta_data;
+      allocHistory = metaData;
    }
    else {
       // In case there are others
@@ -168,8 +186,8 @@ void* malloc(size_t size) {
       while (it->get_next()) {
          it = it->get_next();
       }
-      meta_data->set_prev(it);
-      it->set_next(meta_data);
+      metaData->set_prev(it);
+      it->set_next(metaData);
    }
 
    return allocation_addr;
@@ -227,20 +245,30 @@ void* realloc(void* oldp, size_t size) {
    }
 
    // If not, we search for it assuming oldp is a pointer to a previously allocated block
-   AllocationData* meta_data = NULL;
+   AllocationData* metaData = NULL;
    for (AllocationData* it = allocHistory; it; it = it->get_next()) {
       if (it->get_allocation_addr() == oldp) {
-         meta_data = it;
+         metaData = it;
          break;
       }
    }
 
    // We determine whether allocation has enough space to facilitate the new block size
-   if (size <= meta_data->get_original_size()) {
-      meta_data->set_requested_size(size);
+   if (metaData->get_original_size() >= size) {
+      metaData->set_requested_size(size);
+		split(metaData, size);
       return oldp;
    }
    else {
+		// If not, we check if adjacent block is free and big enough to facilitate the new allocation
+		if (metaData->get_next() && metaData->get_next()->is_free()) {
+			size_t combinedSize = metaData->get_original_size()
+											+ _size_meta_data() + metaData->get_next()->get_original_size();
+			if (combinedSize >= size) {
+				combine(metaData);
+				return metaData->get_allocation_addr();
+			}
+		}
       // If not, we allocate a new space (possibly reused allocation)
       void* allocation_addr = malloc(size);
       if (!allocation_addr) {
