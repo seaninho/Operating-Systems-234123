@@ -15,29 +15,29 @@ void* malloc(size_t size) {
       return NULL;
    }
 
-   AllocationData* meta_data = NULL;
-   AllocationData* it = allocHistory;
+   AllocationData* metaData = NULL;
+   AllocationData* it = NULL;
 
    // First, we search for freed space in our global list
    if (allocHistory) {
-      for (; it; it = it->get_next()) {
+      for (it = allocHistory; it; it = it->get_next()) {
          if (it->is_free() && it->get_original_size() >= size) {
-            meta_data = it;
+            metaData = it;
             break;
          }
       }
 
-      if (meta_data) {
-         meta_data->set_is_free(false);
-         meta_data->set_requested_size(size);
-         return meta_data->get_allocation_addr();
+      if (metaData) {
+         metaData->set_is_free(false);
+         metaData->set_requested_size(size);
+         return metaData->get_allocation_addr();
       }
    }
 
    // Not enough freed space was found, so we allocate new space
-   // Allocating meta_data
-   meta_data = (AllocationData*)sbrk(sizeof(AllocationData));
-   if (meta_data == (void*)(-1)) {
+   // Allocating metaData
+   metaData = (AllocationData*)sbrk(sizeof(AllocationData));
+   if (metaData == (void*)(-1)) {
       return NULL;
    }
 
@@ -49,26 +49,26 @@ void* malloc(size_t size) {
    }
 
    // Setting up the meta data
-   meta_data->set_is_free(false);
-   meta_data->set_original_size(size);
-   meta_data->set_requested_size(size);
-   meta_data->set_allocation_addr(allocation_addr);
-   meta_data->set_next(NULL);
-   meta_data->set_prev(NULL);
+   metaData->set_is_free(false);
+   metaData->set_original_size(size);
+   metaData->set_requested_size(size);
+   metaData->set_allocation_addr(allocation_addr);
+   metaData->set_next(NULL);
+   metaData->set_prev(NULL);
 
    // Adding the allocation meta-data to the allocation history list
    // For the first allocation
    if (!allocHistory) {
-      allocHistory = meta_data;
+      allocHistory = metaData;
    }
    else {
-      // In case there are others
+      // In case there are others, we need to find the last allocation made
       it = allocHistory;
       while (it->get_next()) {
          it = it->get_next();
       }
-      meta_data->set_prev(it);
-      it->set_next(meta_data);
+      metaData->set_prev(it);
+      it->set_next(metaData);
    }
 
    return allocation_addr;
@@ -126,17 +126,17 @@ void* realloc(void* oldp, size_t size) {
    }
 
    // If not, we search for it assuming oldp is a pointer to a previously allocated block
-   AllocationData* meta_data = NULL;
+   AllocationData* metaData = NULL;
    for (AllocationData* it = allocHistory; it; it = it->get_next()) {
       if (it->get_allocation_addr() == oldp) {
-         meta_data = it;
+         metaData = it;
          break;
       }
    }
 
    // We determine whether allocation has enough space to facilitate the new block size
-   if (size <= meta_data->get_original_size()) {
-      meta_data->set_requested_size(size);
+   if (size <= metaData->get_original_size()) {
+      metaData->set_requested_size(size);
       return oldp;
    }
    else {
