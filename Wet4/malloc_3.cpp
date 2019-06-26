@@ -27,10 +27,10 @@ void split(AllocationData* meta_data, size_t new_requested_size ) {
 		return;
 	}
 
-	AllocationData* new_meta_data = (AllocationData*)(meta_data + aligned_size_AllocationData + aligned_size);
+	AllocationData* new_meta_data = (AllocationData*)((int)meta_data + (int)aligned_size_AllocationData + (int)aligned_size);
 	new_meta_data->set_is_free(true);
 	new_meta_data->set_original_size(alignment(size));
-	new_meta_data->set_allocation_addr((void*)(new_meta_data + aligned_size_AllocationData) );
+	new_meta_data->set_allocation_addr((void*)((int)new_meta_data + (int)aligned_size_AllocationData) );
 	new_meta_data->set_next(meta_data->get_next());
 	new_meta_data->set_prev(meta_data);
 
@@ -297,7 +297,7 @@ size_t _num_allocated_bytes() {
 }
 
 size_t _size_meta_data() {
-   return sizeof(AllocationData);
+   return alignment(sizeof(AllocationData));
 }
 
 size_t _num_meta_data_bytes() {
