@@ -138,34 +138,6 @@ void* malloc(size_t size) {
       }
    }
 
-   //handle problem 3
-	// if (allocHistory) {
-	// 	for (it = allocHistory; it; it = it->get_next()) {
-	// 		//if 'it' is not last and free we do nothing
-	// 		if (it->get_next() && it->is_free()) {
-	// 			break;
-	// 		}
-	//
-	// 		//the wilderness chenk is free and not big enough
-	// 		//(otherwise we would handle it in the previous for loop)
-	// 		if (!(it->get_next()) && it->is_free()) {
-	//
-	// 			void* add_allocation = sbrk(alignedSize-it->get_original_size());
-	// 			if (add_allocation == (void*)(-1)) {
-	// 				brk((void*) it);
-	// 				return NULL;
-	// 			}
-	//
-	// 			// Setting up the meta data
-	// 			metaData = it;
-	// 			metaData->set_is_free(false);
-	// 			metaData->set_original_size(alignedSize);
-	// 			metaData->set_requested_size(size);
-	// 			return metaData->get_allocation_addr();
-	// 		}
-	// 	}
-	// }
-
    // Not enough freed space was found, so we allocate new space
    // Allocating Metadata
    metaData = (AllocationData*)sbrk(alignment(sizeof(AllocationData)));
@@ -285,7 +257,6 @@ void* realloc(void* oldp, size_t size) {
 			}
 			metaData->set_requested_size(size);
 			metaData->set_original_size(alignedSize);
-			split(metaData, size);
 			return metaData->get_allocation_addr();
 		}
 
