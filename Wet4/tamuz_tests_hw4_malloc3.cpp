@@ -48,6 +48,19 @@ void get_initial_state(HeapState &initial) {
 	initial.meta_data_bytes = _num_meta_data_bytes();
 }
 
+void print_current_state(HeapState &initial, HeapState &expected) {
+	std::cout << "current number of free blocks is: " << _num_free_blocks() - initial.free_blocks << std::endl;
+	std::cout << "expected number of free blocks is: " << expected.free_blocks << std::endl;
+	std::cout << "current number of free bytes is: " << _num_free_bytes() - initial.free_bytes << std::endl;
+	std::cout << "expected number of free bytes is: " << expected.free_bytes << std::endl;
+	std::cout << "current number of allocated blocks is: " << _num_allocated_blocks() - initial.allocated_blocks << std::endl;
+	std::cout << "expected number of allocated blocks is: " << expected.allocated_blocks << std::endl;
+	std::cout << "current number of allocated bytes is: " << _num_allocated_bytes() - initial.allocated_bytes << std::endl;
+	std::cout << "expected number of allocated bytes is: " << expected.allocated_bytes << std::endl;
+	std::cout << "current number of meta_data bytes is: " << _num_meta_data_bytes() - initial.meta_data_bytes << std::endl;
+	std::cout << "expected number of meta_data bytes is: " << expected.meta_data_bytes << std::endl;
+}
+
 size_t round(size_t size) {
 	return ((size-1)/4+1)*4;
 }
